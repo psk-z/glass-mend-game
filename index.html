@@ -1,12 +1,15 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>깨진 유리조각 붙이기</title>
 <style>
   :root { --paper:#f4e6d3; --gold:#ffd27a; --green:#7be0a0; --red:#ff8a7a; --ink:rgba(30,20,14,.62); }
-  :root { color-scheme: dark; }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; height: 100%; overflow: hidden; background: #2a1f18; color: var(--paper);
-    font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", Meiryo, sans-serif;
     -webkit-user-select: none; user-select: none; touch-action: none;
   }
   canvas { display: block; touch-action: none; }
@@ -36,14 +39,14 @@
   #bar { left: 0; right: 0; bottom: 18px; padding: 0 12px; }
   .grp { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
   #barGlue { display: none; }
-  #bar button, #done button, #muteBtn, #listBtn, #helpBtn, .modal button {
+  #bar button, #done button, #muteBtn, #listBtn, #helpBtn, #langBtn, .modal button {
     pointer-events: auto; cursor: pointer; font: inherit; font-size: 15px; color: var(--paper);
     background: var(--ink); border: 1px solid rgba(255,232,200,.22); border-radius: 12px;
     padding: 10px 16px; min-width: 52px;
   }
-  #bar button:hover, #done button:hover, #muteBtn:hover, #listBtn:hover, #helpBtn:hover, .modal button:hover { background: rgba(70,48,32,.8); }
+  #bar button:hover, #done button:hover, #muteBtn:hover, #listBtn:hover, #helpBtn:hover, #langBtn:hover, .modal button:hover { background: rgba(70,48,32,.8); }
   #topR { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; align-items: flex-start; }
-  #muteBtn, #listBtn, #helpBtn { font-size: 14px; padding: 10px 14px; border-radius: 14px; }
+  #muteBtn, #listBtn, #helpBtn, #langBtn { font-size: 14px; padding: 10px 14px; border-radius: 14px; }
   .modal {
     position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 16px;
     background: rgba(12,7,4,.66); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
@@ -87,6 +90,8 @@
   #reach.wipe { border-color: rgba(160,212,255,.9); }
   #reach.wipe.down { background: rgba(160,212,255,.2); }
 </style>
+</head>
+<body>
 
 <div id="vig" class="ui"></div>
 
@@ -94,9 +99,10 @@
   <div class="card"><div id="name"></div><div id="title"></div></div>
   <div id="topR">
     <div class="card" id="count"></div>
-    <button id="listBtn" title="작품 목록 (L)">목록</button>
-    <button id="helpBtn" title="조작법 (H)">도움말</button>
-    <button id="muteBtn" title="소리 (M)">소리 켬</button>
+    <button id="langBtn" title="Language"></button>
+    <button id="listBtn"></button>
+    <button id="helpBtn"></button>
+    <button id="muteBtn"></button>
   </div>
 </div>
 
@@ -106,54 +112,43 @@
 
 <div id="done" class="ui">
   <div class="card">
-    <div class="big">다 고쳤어요</div>
+    <div class="big" id="doneBig"></div>
     <div class="sub" id="doneSub"></div>
-    <button id="next">다음 작품 →</button>
-    <button id="doneList">목록</button>
+    <button id="next"></button>
+    <button id="doneList"></button>
   </div>
 </div>
 
 <div id="bar" class="ui">
   <div id="barMain" class="grp">
-    <button id="rotL" title="왼쪽으로 돌리기 (Q)">↺</button>
-    <button id="rotR" title="오른쪽으로 돌리기 (E)">↻</button>
-    <button id="glueBtn" class="primary" title="고른 조각에 접착제 바르기 (G)">접착제 바르기</button>
+    <button id="rotL">↺</button>
+    <button id="rotR">↻</button>
+    <button id="glueBtn" class="primary"></button>
   </div>
   <div id="barGlue" class="grp">
-    <button id="toolApply" class="on" title="접착제 바르기">바르기</button>
-    <button id="toolWipe" title="닦아내기 (X)">닦기</button>
-    <button id="glueDone" class="primary" title="다 발랐어요 (Enter)">다 발랐어요</button>
+    <button id="toolApply" class="on"></button>
+    <button id="toolWipe"></button>
+    <button id="glueDone" class="primary"></button>
   </div>
 </div>
 
 <div id="intro" class="modal show">
   <div class="sheet">
-    <h2>깨진 유리조각 붙이기</h2>
-    <p class="lead">책상 위에 흩어진 깨진 조각들을 접착제로 붙여 원래 모습으로 되돌려 보세요. 정해진 순서도, 힌트도 없어요. 단면 모양을 잘 살펴보고 천천히 맞춰 봐요.</p>
-    <h3>조작법</h3>
-    <ul>
-      <li><b>조각 옮기기</b><span>조각을 끌어서 옮겨요. 이미 붙은 조각들은 한 덩어리로 같이 움직여요.</span></li>
-      <li><b>돌리기</b><span>마우스 휠, Q / E 키, 아래의 ↺ ↻ 버튼. 고른 조각(덩어리)이 돌아가요.</span></li>
-      <li><b>시점</b><span>빈 곳을 좌우로 끌면 책상이 돌고, 위아래로 끌면 기울어요.</span></li>
-      <li><b>접착제</b><span>조각을 고르고 '접착제 바르기'(G) 또는 조각을 더블클릭. 금빛 선을 따라 문질러 발라요. 닦기(X)로 지울 수 있어요. 다 바르면 Enter.</span></li>
-      <li><b>붙이기</b><span>접착제를 바른 조각을 맞는 이웃 조각의 단면에 대고 놓으면 붙어요.</span></li>
-      <li><b>기타</b><span>M 소리 켬/끔 · L 작품 목록 · H 도움말</span></li>
-    </ul>
-    <h3>접착제 요령</h3>
-    <ul>
-      <li><b>양</b><span>너무 적으면 미끄러져 떨어지고, 너무 많으면 삐져나와 굳어 버려요. 맞닿는 두 조각에 바른 양은 합쳐서 계산돼요.</span></li>
-      <li><b>여러 면</b><span>한꺼번에 맞닿는 면이 둘 이상이면, 최소 2개 면에 접착제가 충분해야 붙어요.</span></li>
-      <li><b>엉뚱한 곳</b><span>단면이 아닌 곳에 바르면 접착제가 묻어서 조각이 끈적해져요.</span></li>
-    </ul>
-    <button class="ok" id="introOk">확인</button>
+    <h2 id="introTitle"></h2>
+    <p class="lead" id="introLead"></p>
+    <h3 id="introH1"></h3>
+    <ul id="introCtrl"></ul>
+    <h3 id="introH2"></h3>
+    <ul id="introGlue"></ul>
+    <button class="ok" id="introOk"></button>
   </div>
 </div>
 <div id="listModal" class="modal">
   <div class="sheet">
-    <h2>작품 목록</h2>
-    <p class="lead">고치고 싶은 작품을 골라요. 지금 하던 작품을 고르면 처음부터 다시 시작해요.</p>
+    <h2 id="listTitle"></h2>
+    <p class="lead" id="listLead"></p>
     <div id="list"></div>
-    <div class="row"><button id="listClose">닫기</button></div>
+    <div class="row"><button id="listClose"></button></div>
   </div>
 </div>
 
@@ -197,34 +192,34 @@ function smooth(a, b, x) {
 
 const ARTWORKS = [
   {
-    name: '유리잔', kind: 'glass',
+    name: '유리잔', nameEn: 'Glass tumbler', nameJa: 'ガラスのコップ', kind: 'glass',
     height: 3, wall: 0.14, bottom: 0.24,
     radius: y => 0.95 + 0.11 * y,
     bands: [0, 1.5, 3], sectors: 3,            // 2단 x 3조각 = 6조각
   },
   {
-    name: '도자기 꽃병', kind: 'ceramic',
+    name: '도자기 꽃병', nameEn: 'Ceramic vase', nameJa: '陶器の花瓶', kind: 'ceramic',
     height: 4.2, wall: 0.16, bottom: 0.28,
     radius: y => 0.62 + 0.8 * Math.exp(-Math.pow((y - 1.5) / 1.1, 2)) + 0.28 * smooth(3.7, 4.2, y),
     bands: [0, 1.4, 2.8, 4.2], sectors: 4,     // 3단 x 4조각 = 12조각
     stripes: [1.05, 2.15], colors: { base: [0.95, 0.93, 0.87], stripe: [0.20, 0.38, 0.62] },
   },
   {
-    name: '찻잔', kind: 'ceramic',
+    name: '찻잔', nameEn: 'Teacup', nameJa: 'ティーカップ', kind: 'ceramic',
     height: 2.4, wall: 0.13, bottom: 0.25,
     radius: y => 0.85 + 0.3 * Math.pow(y / 2.4, 1.5) + 0.08 * smooth(2.0, 2.4, y),
     bands: [0, 1.2, 2.4], sectors: 4,          // 2단 x 4조각 = 8조각
     stripes: [1.75], colors: { base: [0.97, 0.88, 0.86], stripe: [0.78, 0.36, 0.40] },
   },
   {
-    name: '토분', kind: 'ceramic',
+    name: '토분', nameEn: 'Terracotta pot', nameJa: '素焼きの鉢', kind: 'ceramic',
     height: 2.8, wall: 0.18, bottom: 0.3,
     radius: y => 1.0 + 0.4 * (y / 2.8) + 0.16 * smooth(2.35, 2.8, y),
     bands: [0, 1.4, 2.8], sectors: 5,          // 2단 x 5조각 = 10조각
     stripes: [2.5, 0.5], colors: { base: [0.78, 0.43, 0.29], stripe: [0.95, 0.88, 0.76] },
   },
   {
-    name: '유리병', kind: 'glass',
+    name: '유리병', nameEn: 'Glass bottle', nameJa: 'ガラス瓶', kind: 'glass',
     height: 4.2, wall: 0.12, bottom: 0.24,
     radius: y => 0.48 + 0.5 * (1 - smooth(2.3, 3.6, y)),
     bands: [0, 1.4, 2.8, 4.2], sectors: 5,     // 3단 x 5조각 = 15조각
@@ -266,10 +261,164 @@ const ui = {
   barMain: $('barMain'), barGlue: $('barGlue'),
   rotL: $('rotL'), rotR: $('rotR'), glueBtn: $('glueBtn'), mute: $('muteBtn'),
   toolApply: $('toolApply'), toolWipe: $('toolWipe'), glueDone: $('glueDone'),
-  listBtn: $('listBtn'), helpBtn: $('helpBtn'), doneList: $('doneList'),
+  listBtn: $('listBtn'), helpBtn: $('helpBtn'), doneList: $('doneList'), langBtn: $('langBtn'), doneBig: $('doneBig'),
   intro: $('intro'), introOk: $('introOk'), listModal: $('listModal'), list: $('list'), listClose: $('listClose'),
 };
-function setTip(text) { ui.tip.textContent = text; }
+/* ---- 언어 (한국어 / English) : 새 언어는 STR에 같은 키로 추가하면 돼요 ---- */
+const STR = {
+  ko: {
+    title: '깨진 유리조각 붙이기',
+    lang_btn: '한국어', tt_lang: '언어 / Language',
+    b_list: '목록', tt_list: '작품 목록 (L)', b_help: '도움말', tt_help: '조작법 (H)',
+    b_mute_on: '소리 켬', b_mute_off: '소리 끔', tt_mute: '소리 (M)',
+    done_big: '다 고쳤어요', b_next: '다음 작품 →', b_restart: '처음부터 다시 →',
+    tt_rotL: '왼쪽으로 돌리기 (Q)', tt_rotR: '오른쪽으로 돌리기 (E)',
+    b_glue: '접착제 바르기', tt_glue: '고른 조각에 접착제 바르기 (G)',
+    b_apply: '바르기', tt_apply: '접착제 바르기', b_wipe: '닦기', tt_wipe: '닦아내기 (X)',
+    b_gdone: '다 발랐어요', tt_gdone: '다 발랐어요 (Enter)',
+    intro_lead: '책상 위에 흩어진 깨진 조각들을 접착제로 붙여 원래 모습으로 되돌려 보세요. 정해진 순서도, 힌트도 없어요. 단면 모양을 잘 살펴보고 천천히 맞춰 봐요.',
+    intro_h1: '조작법', intro_h2: '접착제 요령', b_ok: '확인',
+    intro_ctrl: [
+      ['조각 옮기기', '조각을 끌어서 옮겨요. 이미 붙은 조각들은 한 덩어리로 같이 움직여요.'],
+      ['돌리기', '마우스 휠, Q / E 키, 아래의 ↺ ↻ 버튼. 고른 조각(덩어리)이 돌아가요.'],
+      ['시점', '빈 곳을 좌우로 끌면 책상이 돌고, 위아래로 끌면 기울어요.'],
+      ['접착제', "조각을 고르고 '접착제 바르기'(G) 또는 조각을 더블클릭. 금빛 선을 따라 문질러 발라요. 닦기(X)로 지울 수 있어요. 다 바르면 Enter."],
+      ['붙이기', '접착제를 바른 조각을 맞는 이웃 조각의 단면에 대고 놓으면 붙어요.'],
+      ['기타', 'M 소리 켬/끔 · L 작품 목록 · H 도움말'],
+    ],
+    intro_glue: [
+      ['양', '너무 적으면 미끄러져 떨어지고, 너무 많으면 삐져나와 굳어 버려요. 맞닿는 두 조각에 바른 양은 합쳐서 계산돼요.'],
+      ['여러 면', '한꺼번에 맞닿는 면이 둘 이상이면, 최소 2개 면에 접착제가 충분해야 붙어요.'],
+      ['엉뚱한 곳', '단면이 아닌 곳에 바르면 접착제가 묻어서 조각이 끈적해져요.'],
+    ],
+    list_title: '작품 목록', list_lead: '고치고 싶은 작품을 골라요. 지금 하던 작품을 고르면 처음부터 다시 시작해요.', b_close: '닫기',
+    lv_easy: '쉬움', lv_mid: '보통', lv_hard: '어려움',
+    list_meta: (n, lv) => n + '조각 · ' + lv, list_done: '✓ 고침', list_cur: '· 지금 하는 중',
+    count: (j, n, b) => '이어 붙인 조각 <b>' + j + '</b> / ' + n + (b ? ' · 접착제 자국 ' + b : ''),
+    name: (i, n) => '작품 ' + i + ' / ' + n,
+    tip_start: '조각을 집어서 깨진 단면을 살펴보고, 서로 맞는 조각을 찾아 보세요 · 빈 곳을 끌면 시점이 돌아가요',
+    tip_nomatch: '단면이 맞는 조각을 찾아 위치와 방향을 맞춰 보세요. 빈 곳을 끌면 시점이 돌아가요',
+    tip_bare_multi: '맞닿는 면이 여러 개일 경우, 최소 2개의 면에 접착제가 충분해야 붙어요. 더 발라서 다시 붙여 보세요',
+    tip_bare_one: '접착제가 모자라서 미끄러졌어요. 더 발라서 다시 붙여 보세요',
+    tip_ooze: '접착제가 삐져나와서 굳어 버렸어요. 다음엔 조금만 발라 보세요',
+    tip_joined: '딱 붙었어요. 천천히 다음 조각을 찾아봐요',
+    tip_glue_enter: '금빛 선(붙일 면)을 따라 천천히 문질러 발라요. 맞닿는 두 조각에 바른 양은 합쳐서 계산돼요. 엉뚱한 곳에 바르면 조각이 끈적해져요',
+    tip_stray: '엉뚱한 곳에 바른 접착제 때문에 조각이 끈적해요. 접착제 바르기에서 닦기로 문질러 지울 수 있어요',
+    tip_glue_exit: '발라 둔 조각을 끌어다가, 맞는 이웃 조각의 단면에 대 보세요',
+    tip_rotate: 'Q / E, 마우스 휠, 아래 ↺ ↻ 버튼으로 돌려서 단면을 맞춰 보세요',
+    tip_pick_first: '먼저 접착제를 바를 조각을 한 번 집어서 골라 주세요 (조각을 더블클릭해도 돼요)',
+    done_clean: '흔적 없이 깔끔하게 고쳤어요', done_blobs: n => '접착제 자국 ' + n + '개가 남았지만, 다시 제 모습을 찾았어요',
+    st_bare: '모자라요', st_good: '좋아요', st_much: '너무 많아요',
+    edge_L: '왼쪽 면', edge_R: '오른쪽 면', edge_T: '위쪽 면', edge_B: '아래쪽 면',
+    chip_stray: n => '엉뚱한 자국 ' + n + '개',
+  },
+  en: {
+    title: 'Mend the Broken Glass',
+    lang_btn: 'English', tt_lang: 'Language / 言語',
+    b_list: 'Artworks', tt_list: 'Artworks (L)', b_help: 'Help', tt_help: 'How to play (H)',
+    b_mute_on: 'Sound on', b_mute_off: 'Sound off', tt_mute: 'Sound (M)',
+    done_big: 'All mended!', b_next: 'Next artwork →', b_restart: 'Start over →',
+    tt_rotL: 'Rotate left (Q)', tt_rotR: 'Rotate right (E)',
+    b_glue: 'Apply glue', tt_glue: 'Glue the selected piece (G)',
+    b_apply: 'Apply', tt_apply: 'Apply glue', b_wipe: 'Wipe', tt_wipe: 'Wipe off glue (X)',
+    b_gdone: 'Done gluing', tt_gdone: 'Done gluing (Enter)',
+    intro_lead: "Put the broken pieces scattered on the desk back together with glue. There's no fixed order and no hints. Study the broken faces and take your time.",
+    intro_h1: 'Controls', intro_h2: 'Glue tips', b_ok: 'OK',
+    intro_ctrl: [
+      ['Move pieces', 'Drag a piece to move it. Pieces that are already joined move together as one.'],
+      ['Rotate', 'Mouse wheel, Q / E, or the ↺ ↻ buttons below. The selected piece (or cluster) turns.'],
+      ['View', 'Drag empty space left or right to turn the desk, up or down to tilt it.'],
+      ['Glue', 'Select a piece and press "Apply glue" (G), or double-click it. Rub along the gold lines to spread glue. Wipe (X) removes it. Press Enter when done.'],
+      ['Joining', 'Set a glued piece against the matching face of its neighbor and it sticks.'],
+      ['Other', 'M sound on/off · L artworks · H help'],
+    ],
+    intro_glue: [
+      ['Amount', 'Too little and the piece slides off. Too much and it oozes out and hardens. Glue on both touching faces is added together.'],
+      ['Many faces', 'If two or more faces touch at once, at least 2 of them need enough glue.'],
+      ['Stray glue', 'Glue anywhere except the broken faces makes the piece sticky.'],
+    ],
+    list_title: 'Artworks', list_lead: 'Pick something to mend. Choosing the one you are working on starts it over.', b_close: 'Close',
+    lv_easy: 'Easy', lv_mid: 'Medium', lv_hard: 'Hard',
+    list_meta: (n, lv) => n + ' pieces · ' + lv, list_done: '✓ Mended', list_cur: '· In progress',
+    count: (j, n, b) => 'Pieces joined <b>' + j + '</b> / ' + n + (b ? ' · Glue stains ' + b : ''),
+    name: (i, n) => 'Artwork ' + i + ' / ' + n,
+    tip_start: 'Pick up pieces, study the broken faces, and find the ones that fit · Drag empty space to turn the view',
+    tip_nomatch: 'Line up the position and angle with a matching face. Drag empty space to turn the view',
+    tip_bare_multi: 'When several faces touch, at least 2 of them need enough glue. Add more and try again',
+    tip_bare_one: 'Not enough glue, so it slid off. Add more and try again',
+    tip_ooze: 'The glue oozed out and hardened. Use a little less next time',
+    tip_joined: 'Stuck! Take your time and find the next piece',
+    tip_glue_enter: 'Rub along the gold lines to spread glue. Glue on both touching faces is added together. Glue in the wrong place makes the piece sticky',
+    tip_stray: 'Stray glue made the piece sticky. In glue mode, switch to Wipe and rub it away',
+    tip_glue_exit: 'Drag the glued piece against the matching face of a neighbor',
+    tip_rotate: 'Rotate with Q / E, the mouse wheel, or the ↺ ↻ buttons to line up the faces',
+    tip_pick_first: 'Pick up a piece first to select it (or double-click a piece)',
+    done_clean: 'Mended without a trace', done_blobs: n => n + ' glue stains are left, but it is whole again',
+    st_bare: 'Too little', st_good: 'Good', st_much: 'Too much',
+    edge_L: 'Left face', edge_R: 'Right face', edge_T: 'Top face', edge_B: 'Bottom face',
+    chip_stray: n => 'Stray stains: ' + n,
+  },
+  ja: {
+    title: '割れたガラスを直そう',
+    lang_btn: '日本語', tt_lang: '言語 / Language',
+    b_list: '作品一覧', tt_list: '作品一覧 (L)', b_help: 'ヘルプ', tt_help: '遊び方 (H)',
+    b_mute_on: '音あり', b_mute_off: '音なし', tt_mute: '音 (M)',
+    done_big: '全部直りました', b_next: '次の作品 →', b_restart: '最初から →',
+    tt_rotL: '左に回す (Q)', tt_rotR: '右に回す (E)',
+    b_glue: '接着剤をぬる', tt_glue: '選んだ破片に接着剤をぬる (G)',
+    b_apply: 'ぬる', tt_apply: '接着剤をぬる', b_wipe: 'ふき取る', tt_wipe: 'ふき取る (X)',
+    b_gdone: 'ぬり終わった', tt_gdone: 'ぬり終わった (Enter)',
+    intro_lead: '机の上に散らばった割れた破片を、接着剤でくっつけて元の姿に戻しましょう。決まった順番もヒントもありません。断面の形をよく観察して、ゆっくり合わせてみてください。',
+    intro_h1: '操作方法', intro_h2: '接着剤のコツ', b_ok: 'OK',
+    intro_ctrl: [
+      ['破片を動かす', '破片をドラッグして動かします。すでにくっついた破片はひとかたまりで動きます。'],
+      ['回す', 'マウスホイール、Q / Eキー、下の ↺ ↻ ボタン。選んだ破片(のかたまり)が回ります。'],
+      ['視点', '何もない所を左右にドラッグすると机が回り、上下にドラッグすると傾きます。'],
+      ['接着剤', '破片を選んで「接着剤をぬる」(G)を押すか、破片をダブルクリック。金色の線に沿ってこすってぬります。ふき取り(X)で消せます。ぬり終わったらEnter。'],
+      ['くっつける', '接着剤をぬった破片を、合う隣の破片の断面に当てて離すとくっつきます。'],
+      ['その他', 'M 音のオン/オフ · L 作品一覧 · H ヘルプ'],
+    ],
+    intro_glue: [
+      ['量', '少なすぎると滑り落ち、多すぎるとはみ出して固まります。接する2つの破片にぬった量は合算されます。'],
+      ['複数の面', '同時に接する面が2つ以上あるときは、少なくとも2つの面に十分な接着剤が必要です。'],
+      ['関係ない場所', '断面以外にぬると接着剤が付いて、破片がべたべたになります。'],
+    ],
+    list_title: '作品一覧', list_lead: '直したい作品を選んでください。いま遊んでいる作品を選ぶと、最初からやり直しになります。', b_close: '閉じる',
+    lv_easy: 'かんたん', lv_mid: 'ふつう', lv_hard: 'むずかしい',
+    list_meta: (n, lv) => n + '片 · ' + lv, list_done: '✓ 修復済み', list_cur: '· プレイ中',
+    count: (j, n, b) => '接着した破片 <b>' + j + '</b> / ' + n + (b ? ' · 接着剤のあと ' + b : ''),
+    name: (i, n) => '作品 ' + i + ' / ' + n,
+    tip_start: '破片を持ち上げて断面を観察し、合うものを探しましょう · 何もない所をドラッグすると視点が回ります',
+    tip_nomatch: '断面が合う破片を探して、位置と向きを合わせましょう。何もない所をドラッグすると視点が回ります',
+    tip_bare_multi: '接する面が複数あるときは、少なくとも2つの面に十分な接着剤が必要です。もっとぬってもう一度くっつけてみましょう',
+    tip_bare_one: '接着剤が足りなくて滑り落ちました。もっとぬってもう一度試しましょう',
+    tip_ooze: '接着剤がはみ出して固まってしまいました。次は少なめにぬってみましょう',
+    tip_joined: 'ぴったりくっつきました。ゆっくり次の破片を探しましょう',
+    tip_glue_enter: '金色の線(くっつける面)に沿ってゆっくりこすってぬります。接する2つの破片にぬった量は合算されます。関係ない所にぬると破片がべたべたになります',
+    tip_stray: '関係ない所にぬった接着剤で破片がべたべたです。接着剤モードで「ふき取る」に切り替えてこすると消せます',
+    tip_glue_exit: 'ぬった破片をドラッグして、合う隣の破片の断面に当ててみましょう',
+    tip_rotate: 'Q / E、マウスホイール、下の ↺ ↻ ボタンで回して断面を合わせましょう',
+    tip_pick_first: 'まず接着剤をぬる破片を一度持ち上げて選んでください(ダブルクリックでも選べます)',
+    done_clean: '跡も残らずきれいに直りました', done_blobs: n => '接着剤のあとが' + n + '個残りましたが、元の姿に戻りました',
+    st_bare: '足りない', st_good: 'ちょうどいい', st_much: '多すぎ',
+    edge_L: '左の面', edge_R: '右の面', edge_T: '上の面', edge_B: '下の面',
+    chip_stray: n => '余計なあと ' + n + '個',
+  },
+};
+let lang = null;
+try { const sv = localStorage.getItem('mend-lang'); if (sv && STR[sv]) lang = sv; } catch (err) { /* 저장소를 못 써도 괜찮아요 */ }
+if (!lang) {
+  const nl = (typeof navigator !== 'undefined' && navigator.language) || 'ko';
+  lang = /^ko/i.test(nl) ? 'ko' : (/^ja/i.test(nl) ? 'ja' : 'en');
+}
+const LANG_ORDER = ['ko', 'en', 'ja'];
+function t(key, ...args) {
+  const v = (STR[lang] && STR[lang][key] !== undefined) ? STR[lang][key] : STR.ko[key];
+  return typeof v === 'function' ? v(...args) : v;
+}
+const artName = a => (lang === 'ko' ? a.name : (lang === 'ja' ? a.nameJa : a.nameEn) || a.name);
+let tipState = { key: '', args: [] };
+function setTip(key, ...args) { tipState = { key, args }; ui.tip.textContent = key ? t(key, ...args) : ''; }
 
 /* ==========================================================
    5) Three.js 기본 세팅
@@ -888,20 +1037,22 @@ function scatter(list, a) {
 
 const joinedCount = () => pieces.filter(p => p.userData.cluster).length;
 function updateCount() {
-  ui.count.innerHTML = '이어 붙인 조각 <b>' + joinedCount() + '</b> / ' + pieces.length +
-    (blobs.length ? ' · 접착제 자국 ' + blobs.length : '');
+  ui.count.innerHTML = t('count', joinedCount(), pieces.length, blobs.length);
 }
 
+function refreshArtTexts() {
+  ui.name.textContent = t('name', artIndex + 1, ARTWORKS.length);
+  ui.title.textContent = artName(art);
+  ui.next.textContent = t(artIndex + 1 < ARTWORKS.length ? 'b_next' : 'b_restart');
+}
 function loadArtwork(idx) {
   clearArtwork();
   artIndex = idx; art = ARTWORKS[idx];
   pieces = buildPieces(art);
   scatter(pieces, art);
-  ui.name.textContent = '작품 ' + (idx + 1) + ' / ' + ARTWORKS.length;
-  ui.title.textContent = art.name;
-  ui.next.textContent = (idx + 1 < ARTWORKS.length) ? '다음 작품 →' : '처음부터 다시 →';
+  refreshArtTexts();
   updateCount();
-  setTip('조각을 집어서 깨진 단면을 살펴보고, 서로 맞는 조각을 찾아 보세요 · 빈 곳을 끌면 시점이 돌아가요');
+  setTip('tip_start');
 }
 
 /* ==========================================================
@@ -1015,7 +1166,7 @@ function tryJoin(G) {
   }
   if (!fit.length) {
     tone(200, 0.1, 'sine', 0.1, 0, 120);
-    setTip('단면이 맞는 조각을 찾아 위치와 방향을 맞춰 보세요. 빈 곳을 끌면 시점이 돌아가요');
+    setTip('tip_nomatch');
     return { joined: false, reason: 'nomatch' };
   }
   // 이웃 덩어리별로 묶어서, 그 덩어리와 맞닿는 모든 면을 따져 봐요
@@ -1036,7 +1187,7 @@ function tryJoin(G) {
   if (!good) {
     const o = options[0];
     slideAway(G, o.best.m, o.best.q);
-    setTip(o.pairs.length > 1 ? '맞닿는 면이 여러 개일 경우, 최소 2개의 면에 접착제가 충분해야 붙어요. 더 발라서 다시 붙여 보세요' : '접착제가 모자라서 미끄러졌어요. 더 발라서 다시 붙여 보세요');
+    setTip(o.pairs.length > 1 ? 'tip_bare_multi' : 'tip_bare_one');
     return { joined: false, reason: 'bare', cov: Math.min(...o.pairs.map(p => p.st.cov)), missing: o.need - o.have };
   }
   const exc = Math.max(...good.pairs.map(p => p.st.exc));
@@ -1090,10 +1241,14 @@ function doJoin(G, best, pairs) {
   });
   updateCount();
   if (checkComplete()) return;
-  if (ooze) setTip('접착제가 삐져나와서 굳어 버렸어요. 다음엔 조금만 발라 보세요');
-  else setTip('딱 붙었어요. 천천히 다음 조각을 찾아봐요');
+  if (ooze) setTip('tip_ooze');
+  else setTip('tip_joined');
 }
 
+let doneBlobs = 0;
+function renderDoneSub() {
+  ui.doneSub.textContent = artName(art) + ' · ' + (doneBlobs ? t('done_blobs', doneBlobs) : t('done_clean'));
+}
 function checkComplete() {
   if (completed || !pieces.length) return false;
   const cl = pieces[0].userData.cluster;
@@ -1101,9 +1256,8 @@ function checkComplete() {
   completed = true;
   markDone(artIndex);
   setTip('');
-  ui.doneSub.textContent = art.name + ' · ' + (blobs.length
-    ? '접착제 자국 ' + blobs.length + '개가 남았지만, 다시 제 모습을 찾았어요'
-    : '흔적 없이 깔끔하게 고쳤어요');
+  doneBlobs = blobs.length;
+  renderDoneSub();
   ui.done.style.display = 'block';
   const mid = new THREE.Vector3();
   pieces.forEach(p => mid.add(p.position));
@@ -1134,7 +1288,7 @@ function enterGlue(mesh) {
   u.edgeKeys.forEach(k => { u.edges[k].guide.visible = !u.edges[k].joined; });
   setGlueUI(true);
   updateToolButtons();
-  setTip('금빛 선(붙일 면)을 따라 천천히 문질러 발라요. 맞닿는 두 조각에 바른 양은 합쳐서 계산돼요. 엉뚱한 곳에 바르면 조각이 끈적해져요');
+  setTip('tip_glue_enter');
   tone(500, 0.08, 'triangle', 0.06);
 }
 function exitGlue() {
@@ -1145,8 +1299,8 @@ function exitGlue() {
   refreshBeads(u);
   ui.reach.classList.remove('down');
   setGlueUI(false);
-  if (u.stray >= STRAY_STICK) setTip('엉뚱한 곳에 바른 접착제 때문에 조각이 끈적해요. 접착제 바르기에서 닦기로 문질러 지울 수 있어요');
-  else setTip('발라 둔 조각을 끌어다가, 맞는 이웃 조각의 단면에 대 보세요');
+  if (u.stray >= STRAY_STICK) setTip('tip_stray');
+  else setTip('tip_glue_exit');
   tone(420, 0.08, 'triangle', 0.06);
 }
 
@@ -1164,8 +1318,6 @@ function refreshBeads(u) {
 }
 
 const STATE_COLOR = { bare: 0xffd27a, good: 0x7be0a0, much: 0xff8a7a };
-const STATE_LABEL = { bare: '모자라요', good: '좋아요', much: '너무 많아요' };
-const EDGE_LABEL = { L: '왼쪽 면', R: '오른쪽 면', T: '위쪽 면', B: '아래쪽 면' };
 let lastHud = '';
 let strayTimer = 0;
 
@@ -1230,9 +1382,9 @@ function updateGlue(dt) {
     if (e.joined) continue;
     const st = edgeStateOf(mesh, key);
     if (e.state !== st) { e.state = st; e.guide.material.color.setHex(STATE_COLOR[st]); }
-    html += '<span class="chip ' + st + '">' + EDGE_LABEL[key] + ' · ' + STATE_LABEL[st] + '</span>';
+    html += '<span class="chip ' + st + '">' + t('edge_' + key) + ' · ' + t('st_' + st) + '</span>';
   }
-  if (u.stray > 0) html += '<span class="chip much">엉뚱한 자국 ' + u.stray + '개</span>';
+  if (u.stray > 0) html += '<span class="chip much">' + t('chip_stray', u.stray) + '</span>';
   if (html !== lastHud) { ui.glueHud.innerHTML = html; lastHud = html; }
 }
 
@@ -1269,20 +1421,48 @@ function buildList() {
   listButtons = [];
   ARTWORKS.forEach((a, i) => {
     const n = pieceCountOf(a);
-    const lv = n <= 8 ? '쉬움' : (n <= 12 ? '보통' : '어려움');
+    const lv = t(n <= 8 ? 'lv_easy' : (n <= 12 ? 'lv_mid' : 'lv_hard'));
     const b = document.createElement('button');
     b.className = 'item' + (i === artIndex ? ' cur' : '');
-    b.innerHTML = '<div><div class="nm">' + a.name + '</div><div class="meta">' + n + '조각 · ' + lv + '</div></div>' +
-      '<div class="tag">' + (doneSet.has(i) ? '<span class="done">✓ 고침</span> ' : '') + (i === artIndex ? '· 지금 하는 중' : '') + '</div>';
+    b.innerHTML = '<div><div class="nm">' + artName(a) + '</div><div class="meta">' + t('list_meta', n, lv) + '</div></div>' +
+      '<div class="tag">' + (doneSet.has(i) ? '<span class="done">' + t('list_done') + '</span> ' : '') + (i === artIndex ? t('list_cur') : '') + '</div>';
     b.addEventListener('click', () => { showModal(ui.listModal, false); loadArtwork(i); });
     ui.list.appendChild(b);
     listButtons.push(b);
   });
 }
+function listItemsHtml(arr) { return arr.map(r => '<li><b>' + r[0] + '</b><span>' + r[1] + '</span></li>').join(''); }
+function applyLang() {
+  document.title = t('title');
+  if (document.documentElement) document.documentElement.lang = lang;
+  const set = (id, key) => { $(id).textContent = t(key); };
+  const tip = (id, key) => { $(id).title = t(key); };
+  set('introTitle', 'title'); set('introLead', 'intro_lead'); set('introH1', 'intro_h1'); set('introH2', 'intro_h2');
+  $('introCtrl').innerHTML = listItemsHtml(t('intro_ctrl')); $('introGlue').innerHTML = listItemsHtml(t('intro_glue'));
+  set('introOk', 'b_ok'); set('listTitle', 'list_title'); set('listLead', 'list_lead'); set('listClose', 'b_close');
+  set('listBtn', 'b_list'); tip('listBtn', 'tt_list'); set('helpBtn', 'b_help'); tip('helpBtn', 'tt_help');
+  set('langBtn', 'lang_btn'); tip('langBtn', 'tt_lang'); tip('muteBtn', 'tt_mute'); refreshMute();
+  set('doneBig', 'done_big'); set('doneList', 'b_list');
+  tip('rotL', 'tt_rotL'); tip('rotR', 'tt_rotR');
+  set('glueBtn', 'b_glue'); tip('glueBtn', 'tt_glue');
+  set('toolApply', 'b_apply'); tip('toolApply', 'tt_apply'); set('toolWipe', 'b_wipe'); tip('toolWipe', 'tt_wipe');
+  set('glueDone', 'b_gdone'); tip('glueDone', 'tt_gdone');
+  if (pieces.length) { refreshArtTexts(); updateCount(); }
+  if (completed) renderDoneSub();
+  lastHud = '';
+  setTip(tipState.key, ...tipState.args);
+  if (ui.listModal.classList.contains('show')) buildList();
+}
+function setLang(l) {
+  lang = l;
+  try { localStorage.setItem('mend-lang', l); } catch (err) { /* 무시 */ }
+  applyLang();
+}
 function openList() { buildList(); showModal(ui.listModal, true); }
 ui.introOk.addEventListener('click', () => showModal(ui.intro, false));
 ui.helpBtn.addEventListener('click', () => showModal(ui.intro, true));
 ui.listBtn.addEventListener('click', openList);
+ui.langBtn.addEventListener('click', () => setLang(LANG_ORDER[(LANG_ORDER.indexOf(lang) + 1) % LANG_ORDER.length]));
 ui.doneList.addEventListener('click', openList);
 ui.listClose.addEventListener('click', () => showModal(ui.listModal, false));
 
@@ -1313,7 +1493,7 @@ canvas.addEventListener('pointerdown', e => {
   grabOffset.set(p ? mesh.position.x - p.x : 0, 0, p ? mesh.position.z - p.z : 0);
   canvas.style.cursor = 'grabbing';
   tone(520, 0.08, 'triangle', 0.07);
-  setTip('Q / E, 마우스 휠, 아래 ↺ ↻ 버튼으로 돌려서 단면을 맞춰 보세요');
+  setTip('tip_rotate');
 });
 
 canvas.addEventListener('pointermove', e => {
@@ -1374,12 +1554,13 @@ canvas.addEventListener('wheel', e => {
 function startGlueSelected() {
   if (glueMode) return;
   if (!selected || selected.userData.state !== 'free') {
-    setTip('먼저 접착제를 바를 조각을 한 번 집어서 골라 주세요 (조각을 더블클릭해도 돼요)');
+    setTip('tip_pick_first');
     return;
   }
   enterGlue(selected);
 }
-function toggleMute() { muted = !muted; ui.mute.textContent = muted ? '소리 끔' : '소리 켬'; }
+function refreshMute() { ui.mute.textContent = t(muted ? 'b_mute_off' : 'b_mute_on'); }
+function toggleMute() { muted = !muted; refreshMute(); }
 ui.rotL.addEventListener('click', () => rotateSelected(1));
 ui.rotR.addEventListener('click', () => rotateSelected(-1));
 ui.glueBtn.addEventListener('click', startGlueSelected);
@@ -1470,8 +1651,8 @@ function frame() {
 }
 
 loadArtwork(0);
+applyLang();
 frame();
 </script>
-
-
-</body></html>
+</body>
+</html>
