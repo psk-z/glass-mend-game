@@ -1,0 +1,1477 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>깨진 유리조각 붙이기</title>
+<style>
+  :root { --paper:#f4e6d3; --gold:#ffd27a; --green:#7be0a0; --red:#ff8a7a; --ink:rgba(30,20,14,.62); }
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #2a1f18; color: var(--paper);
+    font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    -webkit-user-select: none; user-select: none; touch-action: none;
+  }
+  canvas { display: block; touch-action: none; }
+  .ui { position: fixed; pointer-events: none; }
+  .card {
+    background: var(--ink); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,232,200,.16); border-radius: 14px; padding: 10px 14px;
+  }
+  #vig { inset: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45) 100%); }
+  #top { top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  #name { font-size: 12px; letter-spacing: .14em; opacity: .75; }
+  #title { font-size: 20px; font-weight: 700; margin-top: 2px; }
+  #count { font-size: 14px; text-align: right; }
+  #count b { font-size: 22px; color: var(--gold); }
+  #glueHud { top: 84px; left: 0; right: 0; text-align: center; display: none; padding: 0 12px; }
+  .chip {
+    display: inline-block; margin: 3px 4px; padding: 6px 12px; border-radius: 10px; font-size: 14px;
+    background: var(--ink); border: 1px solid rgba(255,232,200,.25);
+  }
+  .chip.bare { border-color: var(--gold); color: var(--gold); }
+  .chip.good { border-color: var(--green); color: var(--green); }
+  .chip.much { border-color: var(--red); color: var(--red); }
+  #tip {
+    left: 0; right: 0; bottom: 84px; text-align: center; font-size: 15px; line-height: 1.5;
+    text-shadow: 0 1px 6px #000; padding: 0 16px;
+  }
+  #bar { left: 0; right: 0; bottom: 18px; padding: 0 12px; }
+  .grp { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  #barGlue { display: none; }
+  #bar button, #done button, #muteBtn, #listBtn, #helpBtn, .modal button {
+    pointer-events: auto; cursor: pointer; font: inherit; font-size: 15px; color: var(--paper);
+    background: var(--ink); border: 1px solid rgba(255,232,200,.22); border-radius: 12px;
+    padding: 10px 16px; min-width: 52px;
+  }
+  #bar button:hover, #done button:hover, #muteBtn:hover, #listBtn:hover, #helpBtn:hover, .modal button:hover { background: rgba(70,48,32,.8); }
+  #topR { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; align-items: flex-start; }
+  #muteBtn, #listBtn, #helpBtn { font-size: 14px; padding: 10px 14px; border-radius: 14px; }
+  .modal {
+    position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 16px;
+    background: rgba(12,7,4,.66); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  }
+  .modal.show { display: flex; }
+  .sheet {
+    width: 100%; max-width: 540px; max-height: 92vh; overflow-y: auto; touch-action: pan-y; -webkit-overflow-scrolling: touch;
+    background: rgba(46,32,22,.97); border: 1px solid rgba(255,232,200,.22); border-radius: 18px; padding: 22px 22px 18px;
+    box-shadow: 0 18px 60px rgba(0,0,0,.5);
+  }
+  .sheet h2 { margin: 0 0 4px; font-size: 22px; color: var(--gold); }
+  .sheet .lead { margin: 0 0 14px; font-size: 14px; line-height: 1.6; opacity: .88; }
+  .sheet h3 { margin: 14px 0 6px; font-size: 13px; letter-spacing: .1em; color: var(--gold); opacity: .9; }
+  .sheet ul { margin: 0; padding: 0; list-style: none; }
+  .sheet li { display: flex; gap: 10px; font-size: 14px; line-height: 1.55; padding: 5px 0; border-bottom: 1px dashed rgba(255,232,200,.12); }
+  .sheet li b { flex: 0 0 76px; color: var(--paper); }
+  .sheet li span { opacity: .85; }
+  .sheet .ok { display: block; margin: 18px auto 0; min-width: 140px; border-color: var(--green); color: var(--green); font-weight: 700; }
+  .sheet .row { display: flex; justify-content: center; gap: 10px; margin-top: 16px; }
+  #list { display: grid; gap: 8px; }
+  #list button.item {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; padding: 12px 14px;
+  }
+  #list .nm { font-size: 17px; font-weight: 700; }
+  #list .meta { font-size: 12px; opacity: .75; margin-top: 2px; }
+  #list .tag { font-size: 12px; white-space: nowrap; }
+  #list button.item.cur { border-color: var(--gold); }
+  #list .done { color: var(--green); }
+  #bar button.on { border-color: var(--gold); color: var(--gold); }
+  #bar button.primary { border-color: var(--green); color: var(--green); }
+  #done { left: 0; right: 0; bottom: 90px; display: none; text-align: center; }
+  #done .card { display: inline-block; padding: 14px 22px; pointer-events: auto; }
+  #done .big { font-size: 26px; font-weight: 800; color: var(--gold); }
+  #done .sub { font-size: 14px; opacity: .85; margin: 4px 0 12px; }
+  #reach {
+    position: fixed; display: none; pointer-events: none; border-radius: 50%;
+    transform: translate(-50%, -50%); border: 2px dashed rgba(255,226,150,.85);
+    left: -100px; top: -100px;
+  }
+  #reach.down { border-style: solid; background: rgba(255,226,150,.2); }
+  #reach.wipe { border-color: rgba(160,212,255,.9); }
+  #reach.wipe.down { background: rgba(160,212,255,.2); }
+</style>
+
+<div id="vig" class="ui"></div>
+
+<div id="top" class="ui">
+  <div class="card"><div id="name"></div><div id="title"></div></div>
+  <div id="topR">
+    <div class="card" id="count"></div>
+    <button id="listBtn" title="작품 목록 (L)">목록</button>
+    <button id="helpBtn" title="조작법 (H)">도움말</button>
+    <button id="muteBtn" title="소리 (M)">소리 켬</button>
+  </div>
+</div>
+
+<div id="glueHud" class="ui"></div>
+<div id="tip" class="ui"></div>
+<div id="reach"></div>
+
+<div id="done" class="ui">
+  <div class="card">
+    <div class="big">다 고쳤어요</div>
+    <div class="sub" id="doneSub"></div>
+    <button id="next">다음 작품 →</button>
+    <button id="doneList">목록</button>
+  </div>
+</div>
+
+<div id="bar" class="ui">
+  <div id="barMain" class="grp">
+    <button id="rotL" title="왼쪽으로 돌리기 (Q)">↺</button>
+    <button id="rotR" title="오른쪽으로 돌리기 (E)">↻</button>
+    <button id="glueBtn" class="primary" title="고른 조각에 접착제 바르기 (G)">접착제 바르기</button>
+  </div>
+  <div id="barGlue" class="grp">
+    <button id="toolApply" class="on" title="접착제 바르기">바르기</button>
+    <button id="toolWipe" title="닦아내기 (X)">닦기</button>
+    <button id="glueDone" class="primary" title="다 발랐어요 (Enter)">다 발랐어요</button>
+  </div>
+</div>
+
+<div id="intro" class="modal show">
+  <div class="sheet">
+    <h2>깨진 유리조각 붙이기</h2>
+    <p class="lead">책상 위에 흩어진 깨진 조각들을 접착제로 붙여 원래 모습으로 되돌려 보세요. 정해진 순서도, 힌트도 없어요. 단면 모양을 잘 살펴보고 천천히 맞춰 봐요.</p>
+    <h3>조작법</h3>
+    <ul>
+      <li><b>조각 옮기기</b><span>조각을 끌어서 옮겨요. 이미 붙은 조각들은 한 덩어리로 같이 움직여요.</span></li>
+      <li><b>돌리기</b><span>마우스 휠, Q / E 키, 아래의 ↺ ↻ 버튼. 고른 조각(덩어리)이 돌아가요.</span></li>
+      <li><b>시점</b><span>빈 곳을 좌우로 끌면 책상이 돌고, 위아래로 끌면 기울어요.</span></li>
+      <li><b>접착제</b><span>조각을 고르고 '접착제 바르기'(G) 또는 조각을 더블클릭. 금빛 선을 따라 문질러 발라요. 닦기(X)로 지울 수 있어요. 다 바르면 Enter.</span></li>
+      <li><b>붙이기</b><span>접착제를 바른 조각을 맞는 이웃 조각의 단면에 대고 놓으면 붙어요.</span></li>
+      <li><b>기타</b><span>M 소리 켬/끔 · L 작품 목록 · H 도움말</span></li>
+    </ul>
+    <h3>접착제 요령</h3>
+    <ul>
+      <li><b>양</b><span>너무 적으면 미끄러져 떨어지고, 너무 많으면 삐져나와 굳어 버려요. 맞닿는 두 조각에 바른 양은 합쳐서 계산돼요.</span></li>
+      <li><b>여러 면</b><span>한꺼번에 맞닿는 면이 둘 이상이면, 최소 2개 면에 접착제가 충분해야 붙어요.</span></li>
+      <li><b>엉뚱한 곳</b><span>단면이 아닌 곳에 바르면 접착제가 묻어서 조각이 끈적해져요.</span></li>
+    </ul>
+    <button class="ok" id="introOk">확인</button>
+  </div>
+</div>
+<div id="listModal" class="modal">
+  <div class="sheet">
+    <h2>작품 목록</h2>
+    <p class="lead">고치고 싶은 작품을 골라요. 지금 하던 작품을 고르면 처음부터 다시 시작해요.</p>
+    <div id="list"></div>
+    <div class="row"><button id="listClose">닫기</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+
+/* ==========================================================
+   1) 설정값 - 숫자를 바꿔서 난이도를 조절해 보세요
+   ========================================================== */
+// --- 조각 맞추기 (힌트가 없으니 허용 범위는 조금 넉넉하게) ---
+const SNAP_DIST    = 1.0;            // 이웃 조각과 이만큼 가까우면 '맞았다'고 봐요 (클수록 쉬움)
+const SNAP_ANGLE   = 0.55;           // 이웃 조각과 방향 차이 허용 오차 (라디안, 약 31도. 클수록 쉬움)
+const ROT_STEP     = Math.PI / 12;   // 한 번에 돌아가는 각도 (15도)
+const LIFT         = 0.35;           // 조각을 집었을 때 떠오르는 높이 (높을수록 눈으로 본 위치와 실제 위치가 어긋나요)
+
+// --- 접착제 규칙 ---
+const GLUE_RATE    = 1.3;   // 접착제를 짜는 속도 (한 곳에 대고 있을수록 많이 발려요)
+const WIPE_RATE    = 2.6;   // 닦는 속도
+const LOW_T        = 0.45;  // 한 지점에 이 양은 있어야 '붙는 양'
+const HIGH_T       = 2.2;   // 한 지점에 이 양을 넘으면 '너무 많음'
+const COVER_NEEDED = 0.6;   // 붙는 면의 이 비율 이상에 접착제가 있어야 붙어요
+const EXCESS_LIMIT = 0.3;   // '너무 많은 곳'이 이 비율을 넘으면 접착제가 삐져나와요
+const STRAY_STICK  = 2;     // 엉뚱한 곳에 이만큼 바르면 조각이 끈적해져서 잘 안 움직여요
+const MAX_STRAY    = 10;    // 엉뚱한 곳에 묻을 수 있는 최대 자국 수
+const MAX_GLUE     = 4;
+const K_V = 20, K_H = 24;   // 세로면/가로면에 있는 '접착 지점' 개수 (많을수록 접착제 방울이 촘촘해요)
+
+const TWO_PI = Math.PI * 2;
+const DESK_Y = 0;
+
+/* ==========================================================
+   2) 작품 정의 - 여기에 새 작품을 추가할 수 있어요
+      radius(y): 높이 y에서의 바깥 반지름
+      bands:     가로로 자르는 높이들 / sectors: 둥글게 몇 조각으로 나눌지
+   ========================================================== */
+function smooth(a, b, x) {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+}
+
+const ARTWORKS = [
+  {
+    name: '유리잔', kind: 'glass',
+    height: 3, wall: 0.14, bottom: 0.24,
+    radius: y => 0.95 + 0.11 * y,
+    bands: [0, 1.5, 3], sectors: 3,            // 2단 x 3조각 = 6조각
+  },
+  {
+    name: '도자기 꽃병', kind: 'ceramic',
+    height: 4.2, wall: 0.16, bottom: 0.28,
+    radius: y => 0.62 + 0.8 * Math.exp(-Math.pow((y - 1.5) / 1.1, 2)) + 0.28 * smooth(3.7, 4.2, y),
+    bands: [0, 1.4, 2.8, 4.2], sectors: 4,     // 3단 x 4조각 = 12조각
+    stripes: [1.05, 2.15], colors: { base: [0.95, 0.93, 0.87], stripe: [0.20, 0.38, 0.62] },
+  },
+  {
+    name: '찻잔', kind: 'ceramic',
+    height: 2.4, wall: 0.13, bottom: 0.25,
+    radius: y => 0.85 + 0.3 * Math.pow(y / 2.4, 1.5) + 0.08 * smooth(2.0, 2.4, y),
+    bands: [0, 1.2, 2.4], sectors: 4,          // 2단 x 4조각 = 8조각
+    stripes: [1.75], colors: { base: [0.97, 0.88, 0.86], stripe: [0.78, 0.36, 0.40] },
+  },
+  {
+    name: '토분', kind: 'ceramic',
+    height: 2.8, wall: 0.18, bottom: 0.3,
+    radius: y => 1.0 + 0.4 * (y / 2.8) + 0.16 * smooth(2.35, 2.8, y),
+    bands: [0, 1.4, 2.8], sectors: 5,          // 2단 x 5조각 = 10조각
+    stripes: [2.5, 0.5], colors: { base: [0.78, 0.43, 0.29], stripe: [0.95, 0.88, 0.76] },
+  },
+  {
+    name: '유리병', kind: 'glass',
+    height: 4.2, wall: 0.12, bottom: 0.24,
+    radius: y => 0.48 + 0.5 * (1 - smooth(2.3, 3.6, y)),
+    bands: [0, 1.4, 2.8, 4.2], sectors: 5,     // 3단 x 5조각 = 15조각
+  },
+];
+const pieceCountOf = a => a.sectors * (a.bands.length - 1);
+
+/* ==========================================================
+   3) 소리 (WebAudio로 만든 아주 작은 효과음)
+   ========================================================== */
+let audioCtx = null, muted = false;
+function ensureAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audioCtx = null; }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function tone(freq, dur, type, vol, delay, slideTo) {
+  if (muted || !audioCtx) return;
+  const t = audioCtx.currentTime + (delay || 0);
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type || 'sine';
+  o.frequency.setValueAtTime(freq, t);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  g.gain.setValueAtTime(vol || 0.1, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t + dur + 0.03);
+}
+
+/* ==========================================================
+   4) 화면 요소
+   ========================================================== */
+const $ = id => document.getElementById(id);
+const ui = {
+  name: $('name'), title: $('title'), count: $('count'), tip: $('tip'),
+  reach: $('reach'), glueHud: $('glueHud'),
+  done: $('done'), doneSub: $('doneSub'), next: $('next'),
+  barMain: $('barMain'), barGlue: $('barGlue'),
+  rotL: $('rotL'), rotR: $('rotR'), glueBtn: $('glueBtn'), mute: $('muteBtn'),
+  toolApply: $('toolApply'), toolWipe: $('toolWipe'), glueDone: $('glueDone'),
+  listBtn: $('listBtn'), helpBtn: $('helpBtn'), doneList: $('doneList'),
+  intro: $('intro'), introOk: $('introOk'), listModal: $('listModal'), list: $('list'), listClose: $('listClose'),
+};
+function setTip(text) { ui.tip.textContent = text; }
+
+/* ==========================================================
+   5) Three.js 기본 세팅
+   ========================================================== */
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const canvas = renderer.domElement;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x1f1611);
+scene.fog = new THREE.Fog(0x1f1611, 40, 95);
+
+// 화각을 좁게(30도) 해서 옆에서 봐도 앞뒤 원근이 심하지 않게 했어요
+const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 150);
+const CAM_TARGET = new THREE.Vector3(0, 0, 0.8);
+const DEG = Math.PI / 180;
+const EL_DESK = 22 * DEG;               // 기본 시점: 옆에서 (위아래 조각 맞추기 좋아요)
+const EL_GLUE = 18 * DEG;               // 접착제 바를 때 (조각을 정면에서)
+let azDesk = 0;                         // 시점이 책상 둘레를 돈 각도 (빈 곳을 끌면 바뀌어요)
+let orbit = null;                       // 빈 곳을 끌어서 시점을 돌리는 중
+let elDesk = EL_DESK;                   // 지금 시점의 높이 각도 (빈 곳을 위아래로 끌면 바뀌어요)
+const EL_MIN = 10 * DEG, EL_MAX = 78 * DEG;
+const bounds = { x: 5, zMin: -3, zMax: 4.5 };
+let camDist = 14.5, visHalfW = 7, camAz = 0;
+// fitCamera()가 처음 불릴 때 이미 있어야 해서 여기에 선언해요
+let glueMode = null, glueTool = 'apply', glueDown = false, glueDist = 4, glueBlend = 0;
+
+function fitCamera() {
+  const w = window.innerWidth, h = window.innerHeight, aspect = w / h;
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  camera.aspect = aspect;
+  camDist = THREE.MathUtils.clamp(7.0 / (tanV * aspect), 14.5, 26);   // 세로 화면이면 조금 물러나요
+  // 조각을 놓을 수 있는 범위: 기본 시점에서 화면 위쪽 HUD와 아래쪽 버튼에 가리지 않는 책상 구간
+  const camY = Math.sin(EL_DESK) * camDist, camZ = CAM_TARGET.z + Math.cos(EL_DESK) * camDist;
+  const zAt = ndcY => camZ - camY / Math.tan(Math.max(EL_DESK - Math.atan(ndcY * tanV), 0.05));
+  bounds.zMin = zAt(0.3);
+  bounds.zMax = zAt(-0.5);
+  const depthNear = camY * Math.sin(EL_DESK) + (camZ - bounds.zMax) * Math.cos(EL_DESK);   // 가장 가까운 줄에서 화면 가로 반폭
+  visHalfW = tanV * aspect * depthNear;
+  bounds.x = Math.min(11, visHalfW * 0.9);
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  if (glueMode) glueDist = calcGlueDist(glueMode.userData);
+}
+fitCamera();
+window.addEventListener('resize', fitCamera);
+
+/* ---- 조명 ---- */
+scene.add(new THREE.HemisphereLight(0xfff0dc, 0x3a2a1e, 0.6));
+const sun = new THREE.DirectionalLight(0xfff1dc, 0.75);
+sun.position.set(-6, 14, 8);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -14; sun.shadow.camera.right = 14;
+sun.shadow.camera.top = 14;   sun.shadow.camera.bottom = -14;
+sun.shadow.camera.near = 1;   sun.shadow.camera.far = 40;
+sun.shadow.bias = -0.0005;
+scene.add(sun);
+const lampLight = new THREE.PointLight(0xffcf94, 0.7, 34);
+lampLight.position.set(-9.5, 3.8, -7.5);
+scene.add(lampLight);
+
+/* ==========================================================
+   6) 책상, 커팅 매트, 소품
+   ========================================================== */
+function makeWoodTexture() {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#8a5a36'; g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 260; i++) {
+    const y = Math.random() * 512;
+    const dark = Math.random() < 0.5;
+    g.strokeStyle = 'rgba(' + (dark ? '60,35,15' : '180,125,80') + ',' + (0.05 + Math.random() * 0.12) + ')';
+    g.lineWidth = 0.5 + Math.random() * 2.2;
+    g.beginPath(); g.moveTo(0, y);
+    for (let x = 0; x <= 512; x += 64) g.lineTo(x, y + Math.sin(x * 0.02 + i) * 3);
+    g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4, 3);
+  return t;
+}
+function makeMatTexture() {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#3d6652'; g.fillRect(0, 0, 512, 512);
+  g.lineWidth = 1;
+  for (let p = 0; p <= 512; p += 64) {
+    g.strokeStyle = (p % 256 === 0) ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.07)';
+    g.beginPath(); g.moveTo(p, 0); g.lineTo(p, 512); g.stroke();
+    g.beginPath(); g.moveTo(0, p); g.lineTo(512, p); g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6, 5);
+  return t;
+}
+
+const desk = new THREE.Mesh(
+  new THREE.BoxGeometry(34, 0.6, 28),
+  new THREE.MeshStandardMaterial({ map: makeWoodTexture(), roughness: 0.85 })
+);
+desk.position.y = -0.33; desk.receiveShadow = true;
+scene.add(desk);
+
+const mat = new THREE.Mesh(
+  new THREE.PlaneGeometry(26, 20),
+  new THREE.MeshStandardMaterial({ map: makeMatTexture(), roughness: 0.95 })
+);
+mat.rotation.x = -Math.PI / 2; mat.position.y = -0.01; mat.receiveShadow = true;
+scene.add(mat);
+
+function makeProps() {
+  const g = new THREE.Group();
+  const metal = new THREE.MeshStandardMaterial({ color: 0x2d2d33, roughness: 0.5, metalness: 0.6 });
+  // 스탠드 조명
+  const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.0, 0.18, 24), metal);
+  lampBase.position.set(-9.5, 0.09, -7.5);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 4, 10), metal);
+  pole.position.set(-9.5, 2.1, -7.5);
+  const shade = new THREE.Mesh(
+    new THREE.ConeGeometry(1.0, 1.1, 28, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0xc9742e, emissive: 0x55300a, roughness: 0.6, side: THREE.DoubleSide })
+  );
+  shade.position.set(-9.5, 4.4, -7.5);
+  const bulb = new THREE.Mesh(
+    new THREE.SphereGeometry(0.28, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0xffe6b0 })
+  );
+  bulb.position.set(-9.5, 3.95, -7.5);
+  g.add(lampBase, pole, shade, bulb);
+  // 접착제 병
+  const bottle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.45, 0.5, 1.5, 24),
+    new THREE.MeshStandardMaterial({ color: 0xf3efe6, roughness: 0.5 })
+  );
+  bottle.position.set(9, 0.75, -4.5);
+  const label = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.505, 0.505, 0.5, 24),
+    new THREE.MeshStandardMaterial({ color: 0x3a6ea5, roughness: 0.6 })
+  );
+  label.position.set(9, 0.7, -4.5);
+  const nozzle = new THREE.Mesh(
+    new THREE.ConeGeometry(0.45, 0.7, 24),
+    new THREE.MeshStandardMaterial({ color: 0xff8a3d, roughness: 0.5 })
+  );
+  nozzle.position.set(9, 1.85, -4.5);
+  g.add(bottle, label, nozzle);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  return g;
+}
+scene.add(makeProps());
+
+/* ==========================================================
+   7) 반짝이 파티클
+   ========================================================== */
+const MAXP = 160;
+const pPos = new Float32Array(MAXP * 3), pVel = new Float32Array(MAXP * 3), pLife = new Float32Array(MAXP);
+for (let i = 0; i < MAXP; i++) pPos[i * 3 + 1] = -100;
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+const sparkles = new THREE.Points(pGeo, new THREE.PointsMaterial({
+  color: 0xffd27a, size: 0.18, transparent: true, opacity: 0.95,
+  depthWrite: false, blending: THREE.AdditiveBlending,
+}));
+sparkles.frustumCulled = false;
+scene.add(sparkles);
+
+function burst(center, count, spread) {
+  for (let k = 0; k < count; k++) {
+    let idx = -1;
+    for (let i = 0; i < MAXP; i++) if (pLife[i] <= 0) { idx = i; break; }
+    if (idx < 0) return;
+    pPos[idx * 3]     = center.x + (Math.random() - 0.5) * 0.6;
+    pPos[idx * 3 + 1] = center.y + (Math.random() - 0.5) * 0.6;
+    pPos[idx * 3 + 2] = center.z + (Math.random() - 0.5) * 0.6;
+    pVel[idx * 3]     = (Math.random() - 0.5) * 2 * spread;
+    pVel[idx * 3 + 1] = Math.random() * 2.5 + 0.5;
+    pVel[idx * 3 + 2] = (Math.random() - 0.5) * 2 * spread;
+    pLife[idx] = 0.8 + Math.random() * 0.6;
+  }
+}
+function updateParticles(dt) {
+  for (let i = 0; i < MAXP; i++) {
+    if (pLife[i] <= 0) continue;
+    pLife[i] -= dt;
+    if (pLife[i] <= 0) { pPos[i * 3 + 1] = -100; continue; }
+    pVel[i * 3 + 1] -= 3 * dt;
+    pPos[i * 3]     += pVel[i * 3] * dt;
+    pPos[i * 3 + 1] += pVel[i * 3 + 1] * dt;
+    pPos[i * 3 + 2] += pVel[i * 3 + 2] * dt;
+  }
+  pGeo.attributes.position.needsUpdate = true;
+}
+
+/* ==========================================================
+   8) 조각 만들기 - 회전체(Lathe)를 잘라서 깨진 조각으로 만들어요
+   ========================================================== */
+// 깨진 단면이 매끈하지 않고 삐뚤삐뚤하도록 흔드는 함수들.
+// 이웃한 두 조각이 같은 값을 쓰기 때문에 단면이 서로 딱 맞아요. (힌트가 없으니 모양이 눈에 띄게 크게 흔들어요)
+// 깨진 줄마다 주파수·크기·위상이 다르게 해서, 조각마다 단면 모양이 확실히 달라요 (이웃 조각끼리는 같은 값을 써서 딱 맞아요)
+function hz(a, b) { const v = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return v - Math.floor(v); }
+function jy(phi, k, seed) {      // 가로로 깨진 줄 (phi가 한 바퀴 돌아도 이어지도록 정수 주파수)
+  const f1 = 2 + Math.floor(hz(k, seed) * 5), f2 = 8 + Math.floor(hz(k + 7, seed) * 10);
+  const a1 = 0.14 + 0.18 * hz(k + 3, seed), a2 = 0.05 + 0.1 * hz(k + 5, seed);
+  return a1 * Math.sin(f1 * phi + hz(k + 11, seed) * TWO_PI) + a2 * Math.sin(f2 * phi + hz(k + 13, seed) * TWO_PI);
+}
+function jphi(cut, y, seed) {    // 세로로 깨진 줄
+  const c = cut + 20;
+  const f1 = 2 + hz(c, seed) * 6, f2 = 9 + hz(c + 3, seed) * 9;
+  const a1 = 0.08 + 0.2 * hz(c + 5, seed), a2 = 0.04 + 0.09 * hz(c + 7, seed);
+  return a1 * Math.sin(f1 * y + hz(c + 11, seed) * TWO_PI) + a2 * Math.sin(f2 * y + hz(c + 13, seed) * TWO_PI);
+}
+
+// 한 단(y0~y1)의 단면 곡선: 바깥 벽 → 안쪽 벽 순서로 점을 찍어요
+function bandProfile(art, y0, y1) {
+  const pts = [];
+  const n = Math.max(4, Math.round((y1 - y0) / 0.22));
+  const ro = y => art.radius(y);
+  const ri = y => art.radius(y) - art.wall;
+  const first = y0 < 1e-6;
+  const info = { n, first };
+  if (first) pts.push(new THREE.Vector2(0, 0));
+  for (let i = 0; i <= n; i++) {
+    const y = y0 + (y1 - y0) * i / n;
+    if (i === 0) info.outerBottom = pts.length;
+    if (i === n) info.outerTop = pts.length;
+    pts.push(new THREE.Vector2(ro(y), y));
+  }
+  const yi0 = first ? art.bottom : y0;
+  for (let i = n; i >= 0; i--) {
+    const y = yi0 + (y1 - yi0) * i / n;
+    if (i === n) info.innerTop = pts.length;
+    if (i === 0) info.innerBottom = pts.length;
+    pts.push(new THREE.Vector2(ri(y), y));
+  }
+  if (first) pts.push(new THREE.Vector2(0, art.bottom));
+  else { info.closeBottom = pts.length; pts.push(new THREE.Vector2(ro(y0), y0)); }   // 아랫면(깨진 면)을 막아 줘요
+  info.pts = pts;
+  return info;
+}
+
+function makeMaterial(art) {
+  const common = { side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 };
+  if (art.kind === 'glass') {
+    return new THREE.MeshPhongMaterial(Object.assign({
+      color: 0xcdeaf6, transparent: true, opacity: 0.42, shininess: 150, specular: 0xffffff,
+    }, common));
+  }
+  return new THREE.MeshStandardMaterial(Object.assign({
+    vertexColors: true, roughness: 0.35, metalness: 0.05,
+  }, common));
+}
+// 깨진 단면(속살)은 겉과 다른 색으로 보여요
+function makeCapMaterial(art) {
+  if (art.kind === 'glass') {
+    return new THREE.MeshPhongMaterial({ color: 0xeaf8fc, transparent: true, opacity: 0.85, shininess: 40, side: THREE.DoubleSide });
+  }
+  return new THREE.MeshStandardMaterial({ color: 0xd9c2a0, roughness: 0.9, side: THREE.DoubleSide });
+}
+
+const seamMat = new THREE.LineBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.95 });
+const beadGeo = new THREE.SphereGeometry(1, 8, 6);
+const beadMat = new THREE.MeshStandardMaterial({ color: 0xfff4d6, roughness: 0.25, transparent: true, opacity: 0.95 });
+const beadHot = new THREE.MeshStandardMaterial({ color: 0xffd86b, roughness: 0.25, transparent: true, opacity: 0.95 });
+
+// 접착 지점: 가장자리 선(점들의 목록)을 K개 지점으로 나눠요 (바깥쪽 면 위에 살짝 띄워서)
+function sampleLine(P, idxs, K, home) {
+  const pts = [];
+  for (let k = 0; k < K; k++) {
+    const f = (k + 0.5) / K * (idxs.length - 1);
+    const i0 = Math.floor(f), i1 = Math.min(idxs.length - 1, i0 + 1), t = f - i0;
+    const a = idxs[i0], b = idxs[i1];
+    const x = P.getX(a) + (P.getX(b) - P.getX(a)) * t;
+    const y = P.getY(a) + (P.getY(b) - P.getY(a)) * t;
+    const z = P.getZ(a) + (P.getZ(b) - P.getZ(a)) * t;
+    const wx = x + home.x, wz = z + home.z, len = Math.hypot(wx, wz) || 1;   // 완성된 모양에서 바깥 방향
+    pts.push(new THREE.Vector3(x + wx / len * 0.04, y, z + wz / len * 0.04));
+  }
+  return pts;
+}
+
+function buildPieces(art) {
+  const out = [];
+  const seed = Math.random() * TWO_PI;
+  const n = art.sectors, nb = art.bands.length - 1, H = art.bands[nb];
+  const base = 0.35 + Math.random() * 0.5;
+  const cuts = [];
+  // 조각 너비도 제각각이 되도록 깨진 줄 간격을 불규칙하게 나눠요
+  const wts = []; let wsum = 0;
+  for (let i = 0; i < n; i++) { const w = 0.65 + Math.random() * 0.7; wts.push(w); wsum += w; }
+  let acc = base;
+  for (let i = 0; i < n; i++) { cuts.push(acc); acc += wts[i] / wsum * TWO_PI; }
+  const capMat = makeCapMaterial(art);
+
+  for (let b = 0; b < nb; b++) {
+    for (let s = 0; s < n; s++) {
+      const y0 = art.bands[b], y1 = art.bands[b + 1];
+      const phiStart = cuts[s];
+      const phiEnd = s < n - 1 ? cuts[s + 1] : cuts[0] + TWO_PI;
+      const phiLen = phiEnd - phiStart;
+      const prof = bandProfile(art, y0, y1);
+      const m = prof.pts.length;
+      const segs = Math.max(6, Math.ceil(phiLen / TWO_PI * 60));
+      const geo = new THREE.LatheGeometry(prof.pts, segs, phiStart, phiLen);
+      const pos = geo.attributes.position;
+
+      const topRows = (y1 < H - 1e-6) ? [prof.outerTop, prof.innerTop] : [];
+      const botRows = (y0 > 1e-6) ? [prof.outerBottom, prof.innerBottom, prof.closeBottom] : [];
+
+      // 단면을 삐뚤삐뚤하게
+      for (let idx = 0; idx < pos.count; idx++) {
+        const i = Math.floor(idx / m), j = idx % m;
+        const x = pos.getX(idx), y = pos.getY(idx), z = pos.getZ(idx);
+        const r = Math.hypot(x, z);
+        if (r < 1e-6) continue;
+        const phi0 = phiStart + i / segs * phiLen;
+        let ny = y, phi = phi0;
+        if (topRows.indexOf(j) >= 0) ny += jy(phi0, b + 1, seed);
+        if (botRows.indexOf(j) >= 0) ny += jy(phi0, b, seed);
+        if (i === 0)    phi += jphi(s, y, seed);
+        if (i === segs) phi += jphi((s + 1) % n, y, seed);
+        pos.setXYZ(idx, r * Math.sin(phi), ny, r * Math.cos(phi));
+      }
+
+      // 도자기는 푸른 줄무늬를 그려 넣어요
+      if (art.kind === 'ceramic') {
+        const cols = new Float32Array(pos.count * 3);
+        for (let idx = 0; idx < pos.count; idx++) {
+          const y = pos.getY(idx);
+          let st = 0;
+          art.stripes.forEach(sy => { st = Math.max(st, 1 - smooth(0.08, 0.2, Math.abs(y - sy))); });
+          const c0 = art.colors.base, c1 = art.colors.stripe;
+          cols[idx * 3]     = c0[0] + (c1[0] - c0[0]) * st;
+          cols[idx * 3 + 1] = c0[1] + (c1[1] - c0[1]) * st;
+          cols[idx * 3 + 2] = c0[2] + (c1[2] - c0[2]) * st;
+        }
+        geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+      }
+      geo.computeVertexNormals();
+
+      // 조각의 중심을 원점으로 옮겨요 (이 점을 기준으로 돌고 움직여요)
+      geo.computeBoundingBox();
+      const c = new THREE.Vector3();
+      geo.boundingBox.getCenter(c);
+      const size = new THREE.Vector3();
+      geo.boundingBox.getSize(size);
+      const halfH = c.y - geo.boundingBox.min.y;
+      geo.translate(-c.x, -c.y, -c.z);
+      const P = geo.attributes.position;
+
+      // 깨진 단면의 속살 (왼쪽/오른쪽 면)
+      const capArr = [];
+      const tri = (a, bb, cc) => capArr.push(
+        P.getX(a), P.getY(a), P.getZ(a), P.getX(bb), P.getY(bb), P.getZ(bb), P.getX(cc), P.getY(cc), P.getZ(cc));
+      for (const col of [0, segs]) {
+        const o = col * m;
+        for (let l = 0; l < prof.n; l++) {
+          const oa = o + prof.outerBottom + l, ob = oa + 1;
+          const ia = o + prof.innerBottom - l, ib = o + prof.innerBottom - (l + 1);
+          tri(oa, ob, ib); tri(oa, ib, ia);
+        }
+        if (prof.first) {   // 바닥판 단면
+          tri(o, o + prof.outerBottom, o + prof.innerBottom);
+          tri(o, o + prof.innerBottom, o + m - 1);
+        }
+      }
+      const capGeo = new THREE.BufferGeometry();
+      capGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(capArr), 3));
+      capGeo.computeVertexNormals();
+      const capMesh = new THREE.Mesh(capGeo, capMat);
+
+      // 접착한 뒤 보이는 금빛 이음선 (킨츠기) - 붙은 면마다 따로 켜져요
+      const mkSeam = pairs => {
+        const arr = [];
+        pairs.forEach(pr => arr.push(P.getX(pr[0]), P.getY(pr[0]), P.getZ(pr[0]), P.getX(pr[1]), P.getY(pr[1]), P.getZ(pr[1])));
+        const g = new THREE.BufferGeometry();
+        g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(arr), 3));
+        const ln = new THREE.LineSegments(g, seamMat);
+        ln.visible = false;
+        return ln;
+      };
+      const sidePairs = col => { const a = []; for (let j = 0; j < m - 1; j++) a.push([col * m + j, col * m + j + 1]); return a; };
+      const rowPairs = rows => { const a = []; for (const j of rows) for (let i = 0; i < segs; i++) a.push([i * m + j, (i + 1) * m + j]); return a; };
+
+      const mesh = new THREE.Mesh(geo, makeMaterial(art));
+      mesh.castShadow = true;
+      mesh.add(capMesh);
+
+      const home = new THREE.Vector3(c.x, DESK_Y + c.y, c.z);   // 완성된 모양에서 이 조각 중심의 위치
+
+      mesh.userData = {
+        home, halfH, restY: DESK_Y + halfH, size,
+        homeAng: Math.atan2(c.x, c.z),     // 완성된 모양에서 이 조각이 바라보는 바깥 방향
+        state: 'free',                      // free(놓여 있음) / held(손에 듦)
+        cluster: null,                      // 다른 조각과 붙으면 같은 덩어리가 돼요
+        targetYaw: 0, tx: 0, ty: 0, tz: 0,
+        b, s, stray: 0,
+        edges: {}, edgeKeys: [], nb: {}, seams: {}, glueGroup: null, capMesh,
+      };
+      const U = mesh.userData;
+
+      // 이 조각이 이웃 조각과 맞닿는 면들: L(왼쪽) R(오른쪽) T(위) B(아래)
+      const vIdx = col => { const a = []; for (let j = prof.outerBottom; j <= prof.outerTop; j++) a.push(col * m + j); return a; };
+      const hIdx = j => { const a = []; for (let i = 0; i <= segs; i++) a.push(i * m + j); return a; };
+      const edgeDefs = [['L', vIdx(0), K_V, sidePairs(0)], ['R', vIdx(segs), K_V, sidePairs(segs)]];
+      if (topRows.length) edgeDefs.push(['T', hIdx(prof.outerTop), K_H, rowPairs(topRows)]);
+      if (botRows.length) edgeDefs.push(['B', hIdx(prof.outerBottom), K_H, rowPairs(botRows)]);
+
+      const group = new THREE.Group();
+      for (const def of edgeDefs) {
+        const key = def[0], K = def[2];
+        const pts = sampleLine(P, def[1], K, home);
+        const lgeo = new THREE.BufferGeometry();
+        const flat = []; pts.forEach(p => flat.push(p.x, p.y, p.z));
+        lgeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(flat), 3));
+        const guide = new THREE.Line(lgeo, new THREE.LineBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0.85, depthTest: false }));
+        guide.renderOrder = 6; guide.visible = false;
+        group.add(guide);
+        const beads = [];
+        for (let k = 0; k < K; k++) {
+          const bd = new THREE.Mesh(beadGeo, beadMat);
+          bd.position.copy(pts[k]); bd.scale.setScalar(0.01); bd.visible = false;
+          group.add(bd); beads.push(bd);
+        }
+        U.edges[key] = { pts, glue: new Float32Array(K), sx: new Float32Array(K), sy: new Float32Array(K), beads, guide, state: 'bare', joined: false };
+        U.edgeKeys.push(key);
+        const seam = mkSeam(def[3]);
+        mesh.add(seam);
+        U.seams[key] = seam;
+      }
+      mesh.add(group);
+      U.glueGroup = group;
+
+      scene.add(mesh);
+      out.push(mesh);
+    }
+  }
+  // 이웃 관계: 내 오른쪽(R)의 이웃은 그 조각의 왼쪽(L)과 맞닿아요
+  for (let b = 0; b < nb; b++) {
+    for (let s = 0; s < n; s++) {
+      out[b * n + s].userData.nb = {
+        L: out[b * n + (s + n - 1) % n],
+        R: out[b * n + (s + 1) % n],
+        T: b + 1 < nb ? out[(b + 1) * n + s] : null,
+        B: b > 0 ? out[(b - 1) * n + s] : null,
+      };
+    }
+  }
+  return out;
+}
+
+/* ---- 덩어리(붙은 조각들) 다루기 ---- */
+const EDGE_OPP = { L: 'R', R: 'L', T: 'B', B: 'T' };
+const groupOf = p => p.userData.cluster ? p.userData.cluster.members : [p];
+function recalcCluster(cl) {          // 가장 낮은 조각이 책상에 닿도록 높이를 맞춰요
+  let low = 1e9;
+  cl.members.forEach(p => { low = Math.min(low, p.userData.home.y - p.userData.halfH); });
+  cl.yOff = -low;
+}
+function baseY(p) {
+  const u = p.userData;
+  return u.cluster ? u.home.y + u.cluster.yOff : u.restY;
+}
+// y축으로 a만큼 돌렸을 때의 (x, z)  (Three.js의 rotation.y와 같은 방향)
+function rotXZ(dx, dz, a) {
+  const c = Math.cos(a), s = Math.sin(a);
+  return [dx * c + dz * s, -dx * s + dz * c];
+}
+// 목표 위치만 돌려요 (붙을 때 딱 맞추는 용도)
+function snapRot(G, px, pz, a) {
+  G.forEach(m => {
+    const u = m.userData, r = rotXZ(u.tx - px, u.tz - pz, a);
+    u.tx = px + r[0]; u.tz = pz + r[1]; u.targetYaw += a;
+  });
+}
+// 덩어리를 하나의 단단한 물체처럼 돌려요: 목표와 '지금 모습'을 똑같이 돌려서 조각들이 따로 놀지 않아요
+function applyRot(G, pivot, a) {
+  const pu = pivot.userData, tpx = pu.tx, tpz = pu.tz, cpx = pivot.position.x, cpz = pivot.position.z;
+  G.forEach(m => {
+    const u = m.userData;
+    let r = rotXZ(u.tx - tpx, u.tz - tpz, a);
+    u.tx = tpx + r[0]; u.tz = tpz + r[1]; u.targetYaw += a;
+    r = rotXZ(m.position.x - cpx, m.position.z - cpz, a);
+    m.position.x = cpx + r[0]; m.position.z = cpz + r[1]; m.rotation.y += a;
+  });
+}
+let spins = [];                                  // 부드럽게 돌아가는 중인 회전들 {pivot, remain}
+function addSpin(pivot, a) {
+  const s = spins.find(x => x.pivot === pivot);
+  if (s) s.remain += a; else spins.push({ pivot, remain: a });
+}
+function stepSpins(dt) {
+  spins.forEach(s => {
+    const da = Math.abs(s.remain) < 0.003 ? s.remain : s.remain * (1 - Math.exp(-18 * dt));
+    s.remain -= da;
+    applyRot(groupOf(s.pivot), s.pivot, da);
+  });
+  spins = spins.filter(s => Math.abs(s.remain) > 1e-6);
+}
+function flushSpins() {
+  spins.forEach(s => applyRot(groupOf(s.pivot), s.pivot, s.remain));
+  spins = [];
+}
+// q가 지금 놓인 모습 그대로라면, 이웃 m은 어디에 있어야 맞는지
+function expectedPos(m, q) {
+  const u = m.userData, v = q.userData;
+  const r = rotXZ(u.home.x - v.home.x, u.home.z - v.home.z, v.targetYaw);
+  return { x: v.tx + r[0], z: v.tz + r[1] };
+}
+
+/* ---- 접착 판정 ---- */
+// 한 면(key)의 접착 상태. 맞닿는 이웃 조각의 면에 발라 둔 접착제도 같이 셈해요.
+function jointStats(P, key) {
+  const u = P.userData, e = u.edges[key];
+  const Q = u.nb[key];
+  const qe = Q ? Q.userData.edges[EDGE_OPP[key]] : null;
+  const K = e.glue.length;
+  let cov = 0, exc = 0;
+  const excessSites = [];
+  for (let k = 0; k < K; k++) {
+    const t = e.glue[k] + (qe ? qe.glue[k] : 0);
+    if (t >= LOW_T) cov++;
+    if (t > HIGH_T) { exc++; excessSites.push(k); }
+  }
+  return { cov: cov / K, exc: exc / K, excessSites };
+}
+// 화면에 보여 주는 상태는 '이 조각의 이 면에 바른 양'만 봐요.
+// (맞닿는 이웃의 접착제까지 반영하면 "많아요" 표시만 봐도 어느 조각이 이웃인지 들켜 버려요.
+//  실제로 붙을 때는 위의 jointStats처럼 양쪽에 바른 양을 합쳐서 계산해요.)
+function ownStats(P, key) {
+  const e = P.userData.edges[key];
+  const K = e.glue.length;
+  let cov = 0, exc = 0;
+  for (let k = 0; k < K; k++) {
+    if (e.glue[k] >= LOW_T) cov++;
+    if (e.glue[k] > HIGH_T) exc++;
+  }
+  return { cov: cov / K, exc: exc / K };
+}
+function edgeStateOf(P, key) {
+  const s = ownStats(P, key);
+  if (s.exc > EXCESS_LIMIT) return 'much';
+  if (s.cov < COVER_NEEDED) return 'bare';
+  return 'good';
+}
+
+/* ==========================================================
+   9) 작품 불러오기 / 조각 흩뿌리기
+   ========================================================== */
+let pieces = [], artIndex = 0, art = ARTWORKS[0];
+let held = null, heldGroup = [], selected = null, completed = false;
+let blobs = [];           // 굳은 접착제 자국들
+const ptr = { x: 0, y: 0 };
+
+function artMaxRadius(a) {
+  let r = 0;
+  for (let y = 0; y <= a.height; y += 0.1) r = Math.max(r, a.radius(y));
+  return r;
+}
+
+function setGlueUI(on) {
+  ui.barMain.style.display = on ? 'none' : 'flex';
+  ui.barGlue.style.display = on ? 'flex' : 'none';
+  ui.glueHud.style.display = on ? 'block' : 'none';
+  ui.reach.style.display = on ? 'block' : 'none';
+  canvas.style.cursor = on ? 'crosshair' : 'default';
+}
+
+function clearArtwork() {
+  pieces.forEach(p => {
+    const u = p.userData;
+    scene.remove(p);
+    p.geometry.dispose(); p.material.dispose();
+    u.capMesh.geometry.dispose();
+    u.edgeKeys.forEach(k => {
+      u.edges[k].guide.geometry.dispose(); u.edges[k].guide.material.dispose();
+      u.seams[k].geometry.dispose();
+    });
+  });
+  if (pieces.length) pieces[0].userData.capMesh.material.dispose();
+  pieces = []; blobs = []; spins = [];
+  held = selected = glueMode = null; heldGroup = [];
+  glueDown = false; completed = false;
+  setGlueUI(false);
+  ui.done.style.display = 'none';
+}
+
+function scatter(list, a) {
+  const W = bounds.x * 0.88;
+  const zMin = bounds.zMin + 0.3, zMax = bounds.zMax - 0.3;
+  const maxR = artMaxRadius(a);
+  let minD = maxR * 1.4;
+  const taken = [];
+  list.forEach(mesh => {
+    let x = 0, z = 0, tries = 0, ok = false;
+    while (!ok) {
+      tries++;
+      if (tries % 120 === 0) minD *= 0.9;
+      x = (Math.random() * 2 - 1) * W;
+      z = zMin + Math.random() * (zMax - zMin);
+      if (taken.some(t => Math.hypot(t.x - x, t.z - z) < minD)) continue;
+      ok = true;
+    }
+    taken.push({ x, z });
+    const u = mesh.userData;
+    const yaw = Math.random() * TWO_PI;
+    u.targetYaw = yaw;
+    mesh.rotation.y = yaw;
+    u.tx = x; u.tz = z; u.ty = u.restY;
+    mesh.position.set(x, u.restY + 4 + Math.random() * 3, z);   // 위에서 톡 떨어지는 느낌
+  });
+}
+
+const joinedCount = () => pieces.filter(p => p.userData.cluster).length;
+function updateCount() {
+  ui.count.innerHTML = '이어 붙인 조각 <b>' + joinedCount() + '</b> / ' + pieces.length +
+    (blobs.length ? ' · 접착제 자국 ' + blobs.length : '');
+}
+
+function loadArtwork(idx) {
+  clearArtwork();
+  artIndex = idx; art = ARTWORKS[idx];
+  pieces = buildPieces(art);
+  scatter(pieces, art);
+  ui.name.textContent = '작품 ' + (idx + 1) + ' / ' + ARTWORKS.length;
+  ui.title.textContent = art.name;
+  ui.next.textContent = (idx + 1 < ARTWORKS.length) ? '다음 작품 →' : '처음부터 다시 →';
+  updateCount();
+  setTip('조각을 집어서 깨진 단면을 살펴보고, 서로 맞는 조각을 찾아 보세요 · 빈 곳을 끌면 시점이 돌아가요');
+}
+
+/* ==========================================================
+   10) 접착제 자국(굳은 방울)
+   ========================================================== */
+const blobGeo = new THREE.SphereGeometry(1, 10, 8);
+const blobMat = new THREE.MeshStandardMaterial({ color: 0xfff2cf, roughness: 0.25, transparent: true, opacity: 0.92 });
+const tmpW = new THREE.Vector3();
+
+function addBlob(owner, localPos, kind, size) {
+  const m = new THREE.Mesh(blobGeo, blobMat);
+  m.position.copy(localPos);
+  m.scale.set(size, size * 0.7, size);
+  owner.add(m);
+  const b = { mesh: m, owner, kind, wipe: 0 };
+  blobs.push(b);
+  if (kind === 'stray') owner.userData.stray++;
+  return b;
+}
+function removeBlob(b) {
+  if (b.mesh.parent) b.mesh.parent.remove(b.mesh);
+  const i = blobs.indexOf(b);
+  if (i >= 0) blobs.splice(i, 1);
+  if (b.kind === 'stray') b.owner.userData.stray = Math.max(0, b.owner.userData.stray - 1);
+}
+const wpos = new THREE.Vector3();
+const scrV = { x: 0, y: 0 };
+function blobScreen(b) {
+  b.mesh.getWorldPosition(wpos);
+  tmpW.copy(wpos).project(camera);
+  if (tmpW.z >= 1) return null;
+  scrV.x = (tmpW.x * 0.5 + 0.5) * window.innerWidth;
+  scrV.y = (-tmpW.y * 0.5 + 0.5) * window.innerHeight;
+  return scrV;
+}
+
+/* ==========================================================
+   11) 조작 - 집기, 돌리기, 놓기, 붙이기
+   ========================================================== */
+const raycaster = new THREE.Raycaster();
+const ndc = new THREE.Vector2();
+const deskPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -DESK_Y);
+const tmpV = new THREE.Vector3();
+const grabOffset = new THREE.Vector3();
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const angleDiff = (a, b) => (((a - b + Math.PI) % TWO_PI) + TWO_PI) % TWO_PI - Math.PI;
+
+function setNdcXY(x, y) {
+  ndc.x = (x / window.innerWidth) * 2 - 1;
+  ndc.y = -(y / window.innerHeight) * 2 + 1;
+}
+function deskPoint(e, out) {
+  setNdcXY(e.clientX, e.clientY);
+  raycaster.setFromCamera(ndc, camera);
+  return raycaster.ray.intersectPlane(deskPlane, out);
+}
+function pick(e) {
+  setNdcXY(e.clientX, e.clientY);
+  raycaster.setFromCamera(ndc, camera);
+  const list = pieces.filter(p => p.userData.state === 'free');
+  const hits = raycaster.intersectObjects(list, false);
+  return hits.length ? hits[0].object : null;
+}
+
+// 덩어리 전체를 (dx, dz)만큼 옮겨요. 기준 조각 m이 책상 밖으로 나가지 않게 막아요
+function nudgeGroup(G, m, dx, dz) {
+  const u = m.userData;
+  const nx = clamp(u.tx + dx, -bounds.x, bounds.x), nz = clamp(u.tz + dz, bounds.zMin, bounds.zMax);
+  const ddx = nx - u.tx, ddz = nz - u.tz;
+  G.forEach(p => { p.userData.tx += ddx; p.userData.tz += ddz; });
+}
+
+function slideAway(G, m, q) {                 // 접착제가 모자라서 미끄러져 떨어질 때
+  const u = m.userData, v = q.userData;
+  let dx = u.tx - v.tx, dz = u.tz - v.tz;
+  const len = Math.hypot(dx, dz) || 1;
+  dx /= len; dz /= len;
+  nudgeGroup(G, m, dx * 1.8, dz * 1.8 + 0.6);
+  addSpin(m, (Math.random() - 0.5) * 0.9);
+  tone(300, 0.18, 'sine', 0.1, 0, 140);
+}
+
+// G와 H(이웃 덩어리)가 서로 맞닿는 모든 면
+function contactPairs(G, H) {
+  const inH = new Set(H), out = [];
+  G.forEach(m => {
+    const u = m.userData;
+    u.edgeKeys.forEach(key => {
+      const q = u.nb[key];
+      if (q && inH.has(q)) out.push({ m, q, key, st: jointStats(m, key) });
+    });
+  });
+  return out;
+}
+
+// 내려놓은 덩어리가 이웃 조각의 단면과 맞는지 보고, 맞닿는 모든 면에 접착제가 충분할 때만 붙여요
+function tryJoin(G) {
+  flushSpins();
+  const inG = new Set(G);
+  const fit = [];                              // 단면이 맞는 이웃들
+  for (const m of G) {
+    const u = m.userData;
+    for (const key of u.edgeKeys) {
+      const q = u.nb[key];
+      if (!q || inG.has(q)) continue;
+      const ep = expectedPos(m, q);
+      const d = Math.hypot(u.tx - ep.x, u.tz - ep.z);
+      const dy = Math.abs(angleDiff(u.targetYaw, q.userData.targetYaw));
+      if (d < SNAP_DIST && dy < SNAP_ANGLE) fit.push({ m, q, key, d, dy });
+    }
+  }
+  if (!fit.length) {
+    tone(200, 0.1, 'sine', 0.1, 0, 120);
+    setTip('단면이 맞는 조각을 찾아 위치와 방향을 맞춰 보세요. 빈 곳을 끌면 시점이 돌아가요');
+    return { joined: false, reason: 'nomatch' };
+  }
+  // 이웃 덩어리별로 묶어서, 그 덩어리와 맞닿는 모든 면을 따져 봐요
+  const options = [];
+  fit.sort((a, b) => a.d - b.d);
+  const seen = new Set();
+  fit.forEach(f => {
+    const cl = f.q.userData.cluster || f.q;
+    if (seen.has(cl)) return;
+    seen.add(cl);
+    const pairs = contactPairs(G, groupOf(f.q));
+    const lacking = pairs.filter(p => p.st.cov < COVER_NEEDED);
+    // 맞닿는 면이 하나면 그 면에, 둘 이상이면 최소 2개 면에 접착제가 충분해야 붙어요
+    const need = Math.min(2, pairs.length), have = pairs.length - lacking.length;
+    options.push({ best: f, pairs, lacking, need, have, ok: have >= need });
+  });
+  const good = options.find(o => o.ok);
+  if (!good) {
+    const o = options[0];
+    slideAway(G, o.best.m, o.best.q);
+    setTip(o.pairs.length > 1 ? '맞닿는 면이 여러 개일 경우, 최소 2개의 면에 접착제가 충분해야 붙어요. 더 발라서 다시 붙여 보세요' : '접착제가 모자라서 미끄러졌어요. 더 발라서 다시 붙여 보세요');
+    return { joined: false, reason: 'bare', cov: Math.min(...o.pairs.map(p => p.st.cov)), missing: o.need - o.have };
+  }
+  const exc = Math.max(...good.pairs.map(p => p.st.exc));
+  doJoin(G, good.best, good.pairs);
+  return { joined: true, exc };
+}
+
+function doJoin(G, best, pairs) {
+  const { m, q } = best, u = m.userData;
+  // 방향과 위치를 이웃에 딱 맞춰요
+  snapRot(G, u.tx, u.tz, angleDiff(q.userData.targetYaw, u.targetYaw));
+  const ep = expectedPos(m, q);
+  const dx = ep.x - u.tx, dz = ep.z - u.tz;
+  G.forEach(p => { p.userData.tx += dx; p.userData.tz += dz; });
+
+  // 한 덩어리로 합쳐요
+  const members = Array.from(new Set(G.concat(groupOf(q))));
+  const cl = { members, yOff: 0 };
+  recalcCluster(cl);
+  members.forEach(p => { p.userData.cluster = cl; });
+
+  // 서로 맞닿은 면은 이어 붙은 걸로 표시 (금빛 이음선, 접착제 방울은 사라져요)
+  const set = new Set(members);
+  members.forEach(p => {
+    const pu = p.userData;
+    pu.edgeKeys.forEach(k => {
+      const r = pu.nb[k];
+      if (r && set.has(r)) {
+        pu.edges[k].joined = true;
+        pu.seams[k].visible = true;
+        pu.edges[k].guide.visible = false;
+      }
+    });
+    refreshBeads(pu);
+  });
+
+  burst(m.position, 12, 0.8);
+  tone(660, 0.12, 'triangle', 0.1);
+  tone(990, 0.18, 'sine', 0.07, 0.06);
+
+  // 너무 많이 발랐으면 삐져나와 굳어요
+  let ooze = 0;
+  pairs.forEach(pr => {
+    if (pr.st.exc <= EXCESS_LIMIT) return;
+    pr.st.excessSites.slice(0, 4).forEach(i => {
+      const p = pr.m.userData.edges[pr.key].pts[i].clone();
+      p.x += (Math.random() - 0.5) * 0.1; p.y += (Math.random() - 0.5) * 0.1;
+      addBlob(pr.m, p, 'ooze', 0.11 + Math.random() * 0.07);
+      ooze++;
+    });
+  });
+  updateCount();
+  if (checkComplete()) return;
+  if (ooze) setTip('접착제가 삐져나와서 굳어 버렸어요. 다음엔 조금만 발라 보세요');
+  else setTip('딱 붙었어요. 천천히 다음 조각을 찾아봐요');
+}
+
+function checkComplete() {
+  if (completed || !pieces.length) return false;
+  const cl = pieces[0].userData.cluster;
+  if (!cl || cl.members.length !== pieces.length) return false;
+  completed = true;
+  markDone(artIndex);
+  setTip('');
+  ui.doneSub.textContent = art.name + ' · ' + (blobs.length
+    ? '접착제 자국 ' + blobs.length + '개가 남았지만, 다시 제 모습을 찾았어요'
+    : '흔적 없이 깔끔하게 고쳤어요');
+  ui.done.style.display = 'block';
+  const mid = new THREE.Vector3();
+  pieces.forEach(p => mid.add(p.position));
+  mid.multiplyScalar(1 / pieces.length); mid.y = art.height * 0.5;
+  [0, 250, 550].forEach(d => setTimeout(() => burst(mid, 60, 2.4), d));
+  [523, 659, 784, 1047].forEach((f, k) => tone(f, 0.5, 'sine', 0.08, 0.12 * k));
+  return true;
+}
+
+/* ---- 접착제 바르기 모드 ---- */
+function calcGlueDist(u) {
+  const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const aspect = window.innerWidth / window.innerHeight;
+  const h = u.size.y, w = Math.hypot(u.size.x, u.size.z);
+  return Math.max(3.4, h / (2 * tanV * 0.55), w / (2 * tanV * aspect * 0.7));
+}
+function updateToolButtons() {
+  ui.toolApply.classList.toggle('on', glueTool === 'apply');
+  ui.toolWipe.classList.toggle('on', glueTool === 'wipe');
+  ui.reach.classList.toggle('wipe', glueTool === 'wipe');
+}
+function enterGlue(mesh) {
+  const u = mesh.userData;
+  if (glueMode || u.state !== 'free') return;
+  flushSpins();
+  glueMode = mesh; glueDown = false; glueTool = 'apply';
+  glueDist = calcGlueDist(u);
+  u.edgeKeys.forEach(k => { u.edges[k].guide.visible = !u.edges[k].joined; });
+  setGlueUI(true);
+  updateToolButtons();
+  setTip('금빛 선(붙일 면)을 따라 천천히 문질러 발라요. 맞닿는 두 조각에 바른 양은 합쳐서 계산돼요. 엉뚱한 곳에 바르면 조각이 끈적해져요');
+  tone(500, 0.08, 'triangle', 0.06);
+}
+function exitGlue() {
+  if (!glueMode) return;
+  const mesh = glueMode, u = mesh.userData;
+  glueMode = null; glueDown = false;
+  u.edgeKeys.forEach(k => { u.edges[k].guide.visible = false; });
+  refreshBeads(u);
+  ui.reach.classList.remove('down');
+  setGlueUI(false);
+  if (u.stray >= STRAY_STICK) setTip('엉뚱한 곳에 바른 접착제 때문에 조각이 끈적해요. 접착제 바르기에서 닦기로 문질러 지울 수 있어요');
+  else setTip('발라 둔 조각을 끌어다가, 맞는 이웃 조각의 단면에 대 보세요');
+  tone(420, 0.08, 'triangle', 0.06);
+}
+
+function refreshBeads(u) {
+  for (const key of u.edgeKeys) {
+    const e = u.edges[key];
+    for (let k = 0; k < e.glue.length; k++) {
+      const a = e.glue[k], bd = e.beads[k];
+      if (e.joined || a < 0.03) { bd.visible = false; continue; }
+      bd.visible = true;
+      bd.scale.setScalar(0.018 + 0.034 * Math.min(a, 2.6));
+      bd.material = a > HIGH_T ? beadHot : beadMat;
+    }
+  }
+}
+
+const STATE_COLOR = { bare: 0xffd27a, good: 0x7be0a0, much: 0xff8a7a };
+const STATE_LABEL = { bare: '모자라요', good: '좋아요', much: '너무 많아요' };
+const EDGE_LABEL = { L: '왼쪽 면', R: '오른쪽 면', T: '위쪽 면', B: '아래쪽 면' };
+let lastHud = '';
+let strayTimer = 0;
+
+function reachPx() { return clamp(Math.min(window.innerWidth, window.innerHeight) / 36, 16, 26); }   // 바르는 원의 크기 (예전보다 작게)
+
+function updateGlue(dt) {
+  const mesh = glueMode, u = mesh.userData;
+  mesh.updateMatrixWorld(true);
+  camera.updateMatrixWorld();
+  const R = reachPx();
+  ui.reach.style.width = ui.reach.style.height = (R * 2) + 'px';
+  ui.reach.style.left = ptr.x + 'px';
+  ui.reach.style.top = ptr.y + 'px';
+
+  // 접착 지점들을 화면 좌표로 옮겨요
+  for (const key of u.edgeKeys) {
+    const e = u.edges[key];
+    if (e.joined) continue;
+    for (let k = 0; k < e.pts.length; k++) {
+      wpos.copy(e.pts[k]).applyMatrix4(mesh.matrixWorld);
+      tmpW.copy(wpos).project(camera);
+      e.sx[k] = (tmpW.x * 0.5 + 0.5) * window.innerWidth;
+      e.sy[k] = (-tmpW.y * 0.5 + 0.5) * window.innerHeight;
+    }
+  }
+
+  if (glueDown) {
+    let near = false;
+    for (const key of u.edgeKeys) {
+      const e = u.edges[key];
+      if (e.joined) continue;
+      for (let k = 0; k < e.glue.length; k++) {
+        if (Math.hypot(e.sx[k] - ptr.x, e.sy[k] - ptr.y) < R) {
+          near = true;
+          if (glueTool === 'apply') e.glue[k] = Math.min(MAX_GLUE, e.glue[k] + GLUE_RATE * dt);
+          else e.glue[k] = Math.max(0, e.glue[k] - WIPE_RATE * dt);
+        }
+      }
+    }
+    if (glueTool === 'apply') {
+      if (!near) strayCheck(dt, mesh, u);      // 붙일 면이 아닌 곳에 대고 있으면 엉뚱한 자국이 생겨요
+      else strayTimer = 0;
+    } else {
+      for (const b of blobs.slice()) {         // 닦기: 가까운 자국을 지워요
+        if (b.owner !== mesh) continue;
+        const s = blobScreen(b);
+        if (s && Math.hypot(s.x - ptr.x, s.y - ptr.y) < R * 1.3) {
+          b.wipe += dt;
+          b.mesh.scale.multiplyScalar(0.96);
+          if (b.wipe > 0.3) { removeBlob(b); updateCount(); }
+        }
+      }
+    }
+  }
+
+  refreshBeads(u);
+
+  // 면마다 상태를 보여줘요 (금색 = 모자람, 초록 = 좋음, 빨강 = 너무 많음)
+  let html = '';
+  for (const key of u.edgeKeys) {
+    const e = u.edges[key];
+    if (e.joined) continue;
+    const st = edgeStateOf(mesh, key);
+    if (e.state !== st) { e.state = st; e.guide.material.color.setHex(STATE_COLOR[st]); }
+    html += '<span class="chip ' + st + '">' + EDGE_LABEL[key] + ' · ' + STATE_LABEL[st] + '</span>';
+  }
+  if (u.stray > 0) html += '<span class="chip much">엉뚱한 자국 ' + u.stray + '개</span>';
+  if (html !== lastHud) { ui.glueHud.innerHTML = html; lastHud = html; }
+}
+
+function strayCheck(dt, mesh, u) {
+  setNdcXY(ptr.x, ptr.y);
+  raycaster.setFromCamera(ndc, camera);
+  const hits = raycaster.intersectObject(mesh, false);
+  if (!hits.length) { strayTimer = 0; return; }
+  strayTimer += dt;
+  if (strayTimer > 0.22 && u.stray < MAX_STRAY) {
+    strayTimer = 0;
+    const local = mesh.worldToLocal(hits[0].point.clone());
+    addBlob(mesh, local, 'stray', 0.08 + Math.random() * 0.04);
+    tone(300, 0.05, 'sine', 0.05);
+    updateCount();
+  }
+}
+
+/* ---- 안내 창 / 작품 목록 ---- */
+const doneSet = new Set();
+try { JSON.parse(localStorage.getItem('mend-done') || '[]').forEach(i => doneSet.add(i)); } catch (err) { /* 저장소를 못 써도 괜찮아요 */ }
+function markDone(i) {
+  doneSet.add(i);
+  try { localStorage.setItem('mend-done', JSON.stringify(Array.from(doneSet))); } catch (err) { /* 무시 */ }
+}
+const modalOpen = () => ui.intro.classList.contains('show') || ui.listModal.classList.contains('show');
+let listButtons = [];
+function showModal(el, on) {
+  if (on) el.classList.add('show'); else el.classList.remove('show');
+  if (on) { glueDown = false; if (orbit) orbit = null; ui.reach.classList.remove('down'); }
+}
+function buildList() {
+  ui.list.innerHTML = '';
+  listButtons = [];
+  ARTWORKS.forEach((a, i) => {
+    const n = pieceCountOf(a);
+    const lv = n <= 8 ? '쉬움' : (n <= 12 ? '보통' : '어려움');
+    const b = document.createElement('button');
+    b.className = 'item' + (i === artIndex ? ' cur' : '');
+    b.innerHTML = '<div><div class="nm">' + a.name + '</div><div class="meta">' + n + '조각 · ' + lv + '</div></div>' +
+      '<div class="tag">' + (doneSet.has(i) ? '<span class="done">✓ 고침</span> ' : '') + (i === artIndex ? '· 지금 하는 중' : '') + '</div>';
+    b.addEventListener('click', () => { showModal(ui.listModal, false); loadArtwork(i); });
+    ui.list.appendChild(b);
+    listButtons.push(b);
+  });
+}
+function openList() { buildList(); showModal(ui.listModal, true); }
+ui.introOk.addEventListener('click', () => showModal(ui.intro, false));
+ui.helpBtn.addEventListener('click', () => showModal(ui.intro, true));
+ui.listBtn.addEventListener('click', openList);
+ui.doneList.addEventListener('click', openList);
+ui.listClose.addEventListener('click', () => showModal(ui.listModal, false));
+
+/* ---- 포인터 / 키보드 ---- */
+canvas.addEventListener('pointerdown', e => {
+  if (e.preventDefault) e.preventDefault();
+  if (modalOpen()) return;
+  ensureAudio();
+  ptr.x = e.clientX; ptr.y = e.clientY;
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* 무시 */ }
+  if (e.button === 2) return;                   // 오른쪽 버튼은 쓰지 않아요
+  if (glueMode) {
+    glueDown = true; strayTimer = 0;
+    ui.reach.classList.add('down');
+    return;
+  }
+  if (held) return;
+  const mesh = pick(e);
+  if (!mesh) {                                  // 조각이 없는 빈 곳(배경)을 끌면 시점이 좌우로 돌아요
+    orbit = { x: e.clientX, y: e.clientY };
+    canvas.style.cursor = 'grabbing';
+    return;
+  }
+  const p = deskPoint(e, tmpV);
+  held = mesh; selected = mesh;
+  heldGroup = groupOf(mesh).slice();           // 붙어 있는 조각들은 한꺼번에 들려요
+  heldGroup.forEach(g => { g.userData.state = 'held'; });
+  grabOffset.set(p ? mesh.position.x - p.x : 0, 0, p ? mesh.position.z - p.z : 0);
+  canvas.style.cursor = 'grabbing';
+  tone(520, 0.08, 'triangle', 0.07);
+  setTip('Q / E, 마우스 휠, 아래 ↺ ↻ 버튼으로 돌려서 단면을 맞춰 보세요');
+});
+
+canvas.addEventListener('pointermove', e => {
+  ptr.x = e.clientX; ptr.y = e.clientY;
+  if (orbit) {
+    azDesk -= (e.clientX - orbit.x) * 0.006;   // 오른쪽으로 끌면 장면이 오른쪽으로 돌아가요
+    elDesk = clamp(elDesk + (e.clientY - orbit.y) * 0.004, EL_MIN, EL_MAX);   // 아래로 끌면 위에서 내려다봐요
+    orbit.x = e.clientX; orbit.y = e.clientY;
+    return;
+  }
+  if (glueMode) return;
+  if (held) {
+    const p = deskPoint(e, tmpV);
+    if (p) {
+      const u = held.userData;
+      const nx = clamp(p.x + grabOffset.x, -bounds.x, bounds.x);
+      const nz = clamp(p.z + grabOffset.z, bounds.zMin, bounds.zMax);
+      const dx = nx - u.tx, dz = nz - u.tz;
+      heldGroup.forEach(g => { g.userData.tx += dx; g.userData.tz += dz; });
+    }
+  } else {
+    canvas.style.cursor = pick(e) ? 'grab' : 'default';
+  }
+});
+
+function release() {
+  glueDown = false;
+  if (orbit) { orbit = null; canvas.style.cursor = 'default'; }
+  ui.reach.classList.remove('down');
+  if (!held) return;
+  const G = heldGroup;
+  held = null; heldGroup = [];
+  G.forEach(g => { g.userData.state = 'free'; });
+  canvas.style.cursor = 'default';
+  tryJoin(G);
+}
+canvas.addEventListener('pointerup', release);
+canvas.addEventListener('pointercancel', release);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+window.addEventListener('blur', release);
+
+canvas.addEventListener('dblclick', e => {           // 조각을 더블클릭하면 바로 접착제 바르기
+  if (glueMode) return;
+  const m = pick(e);
+  if (m && m.userData.state === 'free') { selected = m; enterGlue(m); }
+});
+
+function rotateSelected(dir) {          // dir: +1 = ↺ (반시계), -1 = ↻ (시계)
+  if (!selected || glueMode || modalOpen()) return;
+  addSpin(selected, dir * ROT_STEP);   // 붙은 조각들은 하나의 덩어리로 함께 돌아요
+  tone(900, 0.03, 'triangle', 0.04);
+}
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  rotateSelected(e.deltaY > 0 ? -1 : 1);
+}, { passive: false });
+
+function startGlueSelected() {
+  if (glueMode) return;
+  if (!selected || selected.userData.state !== 'free') {
+    setTip('먼저 접착제를 바를 조각을 한 번 집어서 골라 주세요 (조각을 더블클릭해도 돼요)');
+    return;
+  }
+  enterGlue(selected);
+}
+function toggleMute() { muted = !muted; ui.mute.textContent = muted ? '소리 끔' : '소리 켬'; }
+ui.rotL.addEventListener('click', () => rotateSelected(1));
+ui.rotR.addEventListener('click', () => rotateSelected(-1));
+ui.glueBtn.addEventListener('click', startGlueSelected);
+ui.mute.addEventListener('click', toggleMute);
+ui.toolApply.addEventListener('click', () => { glueTool = 'apply'; updateToolButtons(); });
+ui.toolWipe.addEventListener('click', () => { glueTool = 'wipe'; updateToolButtons(); });
+ui.glueDone.addEventListener('click', exitGlue);
+ui.next.addEventListener('click', () => loadArtwork((artIndex + 1) % ARTWORKS.length));
+window.addEventListener('keydown', e => {
+  const k = (e.key || '').toLowerCase();
+  if (modalOpen()) {
+    if (k === 'escape' || k === 'enter') { showModal(ui.intro, false); showModal(ui.listModal, false); }
+    return;
+  }
+  if (glueMode) {
+    if (k === 'enter' || k === 'escape' || k === 'g') exitGlue();
+    else if (k === 'x') { glueTool = glueTool === 'apply' ? 'wipe' : 'apply'; updateToolButtons(); }
+    return;
+  }
+  if (k === 'q') rotateSelected(1);
+  else if (k === 'e') rotateSelected(-1);
+  else if (k === 'g') startGlueSelected();
+  else if (k === 'm') toggleMute();
+  else if (k === 'l') openList();
+  else if (k === 'h') showModal(ui.intro, true);
+});
+
+/* ==========================================================
+   12) 매 프레임 업데이트
+   ========================================================== */
+const EM_NONE = new THREE.Color(0x000000);
+const EM_SEL  = new THREE.Color(0x2b2a14);
+
+function updatePiece(mesh, dt) {
+  const u = mesh.userData;
+  const G = groupOf(mesh);
+  const sticky = u.state === 'held' && G.some(p => p.userData.stray >= STRAY_STICK);
+  const kp = (1 - Math.exp(-16 * dt)) * (sticky ? 0.2 : 1);   // 끈적하면 손을 따라오는 게 느려요
+  const kr = 1 - Math.exp(-14 * dt), ke = 1 - Math.exp(-10 * dt);
+
+  u.ty = baseY(mesh) + (u.state === 'held' ? LIFT : 0);
+  mesh.position.x += (u.tx - mesh.position.x) * kp;
+  mesh.position.y += (u.ty - mesh.position.y) * kp;
+  mesh.position.z += (u.tz - mesh.position.z) * kp;
+  mesh.rotation.y += (u.targetYaw - mesh.rotation.y) * kr;
+
+  // 고른 조각(과 붙은 조각들)은 은은하게 빛나요
+  const lit = selected && groupOf(selected).indexOf(mesh) >= 0;
+  mesh.material.emissive.lerp(lit ? EM_SEL : EM_NONE, ke);
+}
+
+const clock = new THREE.Clock();
+const glueTarget = new THREE.Vector3(), camTgt = new THREE.Vector3();
+let time = 0;
+
+function frame() {
+  requestAnimationFrame(frame);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  time += dt;
+
+  stepSpins(dt);
+  if (glueMode) updateGlue(dt);
+  for (let i = 0; i < pieces.length; i++) updatePiece(pieces[i], dt);
+  updateParticles(dt);
+
+  // 카메라: 평소엔 책상을 가깝게, 접착제를 바를 땐 조각의 바깥 면 앞으로 다가가요
+  let azT = azDesk;
+  if (glueMode) {
+    const gu = glueMode.userData;
+    glueTarget.set(glueMode.position.x, glueMode.position.y + 0.1, glueMode.position.z);
+    azT = gu.targetYaw + gu.homeAng;
+  }
+  camAz += angleDiff(azT, camAz) * (1 - Math.exp(-5 * dt));
+  glueBlend += ((glueMode ? 1 : 0) - glueBlend) * (1 - Math.exp(-5 * dt));
+  const k = glueBlend;
+  camTgt.copy(CAM_TARGET).lerp(glueTarget, k);
+  const el = elDesk + (EL_GLUE - elDesk) * k;
+  const dist = camDist + (glueDist - camDist) * k;
+  camera.position.set(
+    camTgt.x + Math.sin(camAz) * Math.cos(el) * dist,
+    camTgt.y + Math.sin(el) * dist,
+    camTgt.z + Math.cos(camAz) * Math.cos(el) * dist);
+  camera.position.x += Math.sin(time * 0.3) * 0.2 * (1 - k);   // 아주 살짝 흔들려요 (숨 쉬는 느낌)
+  camera.position.y += Math.sin(time * 0.23) * 0.06 * (1 - k);
+  camera.lookAt(camTgt);
+
+  renderer.render(scene, camera);
+}
+
+loadArtwork(0);
+frame();
+</script>
+
+
+</body></html>
